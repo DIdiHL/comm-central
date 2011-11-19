@@ -1907,15 +1907,10 @@ ld.])
 *-darwin*) 
     MKSHLIB='$(CXX) $(CXXFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -o $@'
     MKCSHLIB='$(CC) $(CFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -o $@'
-    # If we're building with --enable-profiling, we need a frame pointer.
-    if test -z "$MOZ_PROFILING"; then
-        MOZ_OPTIMIZE_FLAGS="-O3 -fomit-frame-pointer"
-    else
-        MOZ_OPTIMIZE_FLAGS="-O3 -fno-omit-frame-pointer"
-    fi
+    MOZ_OPTIMIZE_FLAGS="-O3"
     _PEDANTIC=
-    CFLAGS="$CFLAGS -fpascal-strings -fno-common"
-    CXXFLAGS="$CXXFLAGS -fpascal-strings -fno-common"
+    CFLAGS="$CFLAGS -fno-common"
+    CXXFLAGS="$CXXFLAGS -fno-common"
     DLL_SUFFIX=".dylib"
     DSO_LDOPTS=''
     STRIP="$STRIP -x -S"
@@ -2073,12 +2068,7 @@ ia64*-hpux*)
             # -Os is broken on gcc 4.1.x 4.2.x, 4.5.0 we need to tweak it to get good results.
             MOZ_OPTIMIZE_SIZE_TWEAK="-finline-limit=50"
         esac
-        # If we're building with --enable-profiling, we need a frame pointer.
-        if test -z "$MOZ_PROFILING"; then
-            MOZ_OPTIMIZE_FLAGS="-Os -freorder-blocks -fomit-frame-pointer $MOZ_OPTIMIZE_SIZE_TWEAK"
-        else
-            MOZ_OPTIMIZE_FLAGS="-Os -freorder-blocks -fno-omit-frame-pointer $MOZ_OPTIMIZE_SIZE_TWEAK"
-        fi
+        MOZ_OPTIMIZE_FLAGS="-Os -freorder-blocks $MOZ_OPTIMIZE_SIZE_TWEAK"
         MOZ_DEBUG_FLAGS="-g"
     fi
 
@@ -2262,12 +2252,7 @@ ia64*-hpux*)
         MOZ_DEBUG_FLAGS='-Zi'
         MOZ_DEBUG_LDFLAGS='-DEBUG -DEBUGTYPE:CV'
         WARNINGS_AS_ERRORS='-WX'
-        # If we're building with --enable-profiling, we need -Oy-, which forces a frame pointer.
-        if test -z "$MOZ_PROFILING"; then
-            MOZ_OPTIMIZE_FLAGS='-O1'
-        else
-            MOZ_OPTIMIZE_FLAGS='-O1 -Oy-'
-        fi
+        MOZ_OPTIMIZE_FLAGS='-O1'
         MOZ_JS_STATIC_LIBS='$(LIBXUL_DIST)/lib/js_static.lib'
         MOZ_JS_SHARED_LIBS='$(LIBXUL_DIST)/lib/mozjs.lib'
         MOZ_FIX_LINK_PATHS=
@@ -5741,6 +5726,8 @@ else
     MOZ_OPTIMIZE=
 fi ], MOZ_OPTIMIZE=1)
 
+MOZ_SET_FRAMEPTR_FLAGS
+
 if test "$COMPILE_ENVIRONMENT"; then
 if test -n "$MOZ_OPTIMIZE"; then
     AC_MSG_CHECKING([for valid optimization flags])
@@ -5759,6 +5746,7 @@ fi
 fi # COMPILE_ENVIRONMENT
 
 AC_SUBST(MOZ_OPTIMIZE)
+AC_SUBST(MOZ_FRAMEPTR_FLAGS)
 AC_SUBST(MOZ_OPTIMIZE_FLAGS)
 AC_SUBST(MOZ_OPTIMIZE_LDFLAGS)
 AC_SUBST(MOZ_OPTIMIZE_SIZE_TWEAK)
@@ -5926,7 +5914,6 @@ if test "$MOZ_MEMORY"; then
     AC_DEFINE(MOZ_MEMORY_LINUX)
     AC_DEFINE(MOZ_MEMORY_ANDROID)
     _WRAP_MALLOC=1
-    export WRAP_MALLOC_LIB="-L$_objdir/mozilla/dist/lib -lmozalloc -lmozutils"
     ;;
   *)
     AC_MSG_ERROR([--enable-jemalloc not supported on ${target}])
@@ -5947,6 +5934,13 @@ AC_SUBST(WIN32_CRT_LIBS)
 dnl Need to set this for make because NSS doesn't have configure
 AC_SUBST(DLLFLAGS)
 
+dnl We need to wrap dlopen and related functions on Android because we use
+dnl our own linker.
+if test "$OS_TARGET" = Android; then
+    WRAP_LDFLAGS="${WRAP_LDFLAGS} -L$_objdir/dist/lib -lmozutils"
+    WRAP_LDFLAGS="${WRAP_LDFLAGS} -Wl,--wrap=dlopen,--wrap=dlclose,--wrap=dlerror,--wrap=dlsym,--wrap=dladdr"
+fi
+
 dnl ========================================================
 dnl = Use malloc wrapper lib
 dnl ========================================================
@@ -5956,9 +5950,14 @@ MOZ_ARG_ENABLE_BOOL(wrap-malloc,
     _WRAP_MALLOC= )
 
 if test -n "$_WRAP_MALLOC"; then
-    if test "$GNU_CC"; then
-    WRAP_MALLOC_CFLAGS="${LDFLAGS} -Wl,--wrap -Wl,malloc -Wl,--wrap -Wl,calloc -Wl,--wrap -Wl,valloc -Wl,--wrap -Wl,free -Wl,--wrap -Wl,realloc -Wl,--wrap -Wl,memalign -Wl,--wrap -Wl,__builtin_new -Wl,--wrap -Wl,__builtin_vec_new -Wl,--wrap -Wl,__builtin_delete -Wl,--wrap -Wl,__builtin_vec_delete -Wl,--wrap -Wl,PR_Free -Wl,--wrap -Wl,PR_Malloc -Wl,--wrap -Wl,PR_Calloc -Wl,--wrap -Wl,PR_Realloc -Wl,--wrap -Wl,strdup -Wl,--wrap -Wl,strndup -Wl,--wrap -Wl,posix_memalign"
-    MKSHLIB='$(CXX) $(DSO_LDOPTS) $(WRAP_MALLOC_CFLAGS) $(WRAP_MALLOC_LIB) -o $@'
+    if test -n "$GNU_CC"; then
+        WRAP_LDFLAGS="${WRAP_LDFLAGS} -Wl,--wrap=malloc,--wrap=calloc,--wrap=valloc,--wrap=free,--wrap=realloc,--wrap=memalign"
+        WRAP_LDFLAGS="${WRAP_LDFLAGS} -Wl,--wrap=__builtin_new,--wrap=__builtin_vec_new,--wrap=__builtin_delete,--wrap=__builtin_vec_delete"
+        WRAP_LDFLAGS="${WRAP_LDFLAGS} -Wl,--wrap=PR_Free,--wrap=PR_Malloc,--wrap=PR_Calloc,--wrap=PR_Realloc"
+        WRAP_LDFLAGS="${WRAP_LDFLAGS} -Wl,--wrap=strdup,--wrap=strndup"
+        WRAP_LDFLAGS="${WRAP_LDFLAGS} -Wl,--wrap=posix_memalign,--wrap=malloc_usable_size"
+    else
+        AC_MSG_ERROR([--enable-wrap-malloc is not supported for non-GNU toolchains])
     fi
 fi
 
@@ -5967,7 +5966,7 @@ dnl = Location of malloc wrapper lib
 dnl ========================================================
 MOZ_ARG_WITH_STRING(wrap-malloc,
 [  --with-wrap-malloc=DIR  Location of malloc wrapper library],
-    WRAP_MALLOC_LIB=$withval)
+    WRAP_LDFLAGS="${WRAP_LDFLAGS} $withval")
 
 dnl ========================================================
 dnl jprof
@@ -6188,6 +6187,8 @@ if test "$MOZ_CHROME_FILE_FORMAT" = "omni"; then
     MOZ_CHROME_FILE_FORMAT=flat
 fi
 
+OMNIJAR_NAME=omni.ja
+AC_SUBST(OMNIJAR_NAME)
 AC_SUBST(MOZ_OMNIJAR)
 
 dnl ========================================================
@@ -6989,8 +6990,7 @@ AC_SUBST(INTEL_ARCHITECTURE)
 AC_SUBST(MOZ_DISABLE_JAR_PACKAGING)
 AC_SUBST(MOZ_CHROME_FILE_FORMAT)
 
-AC_SUBST(WRAP_MALLOC_CFLAGS)
-AC_SUBST(WRAP_MALLOC_LIB)
+AC_SUBST(WRAP_LDFLAGS)
 AC_SUBST(MKSHLIB)
 AC_SUBST(MKCSHLIB)
 AC_SUBST(MKSHLIB_FORCE_ALL)
@@ -7271,6 +7271,13 @@ RC=
 
 unset MAKEFILES
 unset CONFIG_FILES
+
+export WRAP_LDFLAGS
+
+if test -n "$_WRAP_MALLOC"; then
+    # Avoid doubling wrap malloc arguments
+    _SUBDIR_CONFIG_ARGS="`echo $_SUBDIR_CONFIG_ARGS | sed -e 's/--enable-wrap-malloc *//'`"
+fi
 
 # build Mozilla first
 #

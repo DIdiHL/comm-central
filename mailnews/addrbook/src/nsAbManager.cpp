@@ -299,9 +299,7 @@ NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Init it with the URI
-    const nsAFlatCString& flatURI = PromiseFlatCString(aURI);
-
-    rv = directory->Init(flatURI.get());
+    rv = directory->Init(PromiseFlatCString(aURI).get());
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Check if this directory was initiated with a search query.  If so,
@@ -1304,9 +1302,10 @@ nsAbManager::GenerateUUID(const nsACString &aDirectoryId,
 }
 
 NS_IMETHODIMP
-nsAbManager::ConvertQueryStringToExpression(const char *aQueryString,
+nsAbManager::ConvertQueryStringToExpression(const nsACString &aQueryString,
                                             nsIAbBooleanExpression **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
-  return nsAbQueryStringToExpression::Convert(aQueryString, _retval);
+  return nsAbQueryStringToExpression::Convert(aQueryString,
+                                              _retval);
 }

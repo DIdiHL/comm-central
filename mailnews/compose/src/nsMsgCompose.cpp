@@ -2782,12 +2782,39 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           // Remove my own address if using Mail-Followup-To (see bug 325429)
           if (mIdentity)
           {
-            nsCString email;
-            mIdentity->GetEmail(email);
-            addressToBeRemoved.AppendLiteral(", ");
-            addressToBeRemoved.Append(email);
+            bool removeMyEmailInCc = true;
+            nsCString myEmail;
+            mIdentity->GetEmail(myEmail);
+
+            // Remove own address from CC unless we want it in there
+            // through the automatic-CC-to-self (see bug 584962). There are
+            // three cases:
+            // - user has no automatic CC
+            // - user has automatic CC but own email is not in it
+            // - user has automatic CC and own email in it
+            // Only in the last case do we want our own email address to stay
+            // in the CC list.
+            bool automaticCc;
+            mIdentity->GetDoCc(&automaticCc);
+            if (automaticCc)
+            {
+              nsCString ccList, ccListEmailAddresses;
+              mIdentity->GetDoCcList(ccList);
+              rv = parser->ExtractHeaderAddressMailboxes(ccList,
+                                                         ccListEmailAddresses);
+              if (NS_SUCCEEDED(rv) &&
+                  ccListEmailAddresses.Find(myEmail) != kNotFound)
+                removeMyEmailInCc = false;
+            }
+
+            if (removeMyEmailInCc)
+            {
+              addressToBeRemoved.AppendLiteral(", ");
+              addressToBeRemoved.Append(myEmail);
+            }
+
             rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
-                                                  email, resultStr);
+                                                  myEmail, resultStr);
             if (NS_SUCCEEDED(rv))
             {
               if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
@@ -3118,12 +3145,13 @@ nsMsgCompose::QuoteMessage(const char *msgURI)
   mQuoteStreamListener->SetComposeObj(this);
 
   rv = mQuote->QuoteMessage(msgURI, PR_FALSE, mQuoteStreamListener,
-                            mCharsetOverride ? m_compFields->GetCharacterSet() : "", PR_FALSE);
+                            mCharsetOverride ? m_compFields->GetCharacterSet() : "",
+                            PR_FALSE, msgHdr);
   return rv;
 }
 
 nsresult
-nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // New template
+nsMsgCompose::QuoteOriginalMessage() // New template
 {
   nsresult    rv;
 
@@ -3140,13 +3168,20 @@ nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // 
   nsCOMPtr <nsIMsgDBHdr> originalMsgHdr = mOrigMsgHdr;
   if (!originalMsgHdr)
   {
-    rv = GetMsgDBHdrFromURI(originalMsgURI, getter_AddRefs(originalMsgHdr));
+    rv = GetMsgDBHdrFromURI(mOriginalMsgURI.get(), getter_AddRefs(originalMsgHdr));
     NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  bool fileUrl = StringBeginsWith(mOriginalMsgURI, NS_LITERAL_CSTRING("file:"));
+  if (fileUrl)
+  {
+    mOriginalMsgURI.Replace(0, 5, NS_LITERAL_CSTRING("mailbox:"));
+    mOriginalMsgURI.AppendLiteral("?number=0");
   }
 
   // Create the consumer output stream.. this will receive all the HTML from libmime
   mQuoteStreamListener =
-    new QuotingOutputStreamListener(originalMsgURI, originalMsgHdr, what != 1,
+    new QuotingOutputStreamListener(mOriginalMsgURI.get(), originalMsgHdr, mWhatHolder != 1,
                                     !bAutoQuote || !mHtmlToQuote.IsEmpty(), m_identity,
                                     mQuoteCharset.get(), mCharsetOverride, PR_TRUE, mHtmlToQuote);
 
@@ -3156,8 +3191,9 @@ nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // 
 
   mQuoteStreamListener->SetComposeObj(this);
 
-  rv = mQuote->QuoteMessage(originalMsgURI, what != 1, mQuoteStreamListener,
-                            mCharsetOverride ? mQuoteCharset.get() : "", !bAutoQuote);
+  rv = mQuote->QuoteMessage(mOriginalMsgURI.get(), mWhatHolder != 1, mQuoteStreamListener,
+                            mCharsetOverride ? mQuoteCharset.get() : "",
+                            !bAutoQuote, originalMsgHdr);
   return rv;
 }
 
@@ -3904,8 +3940,8 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnProgressChange(nsIWebProgress *aWebPro
   return NS_OK;
 }
 
-/* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location); */
-NS_IMETHODIMP nsMsgComposeSendListener::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location)
+/* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location, in unsigned long aFlags); */
+NS_IMETHODIMP nsMsgComposeSendListener::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location, PRUint32 aFlags)
 {
   /* Ignore this call */
   return NS_OK;
@@ -4041,7 +4077,7 @@ nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
   {
     nsCAutoString metaCharset("charset=");
     metaCharset.Append(sigEncoding);
-    PRInt32 pos = sigData.Find(metaCharset.BeginReading(), PR_TRUE);
+    PRInt32 pos = sigData.Find(metaCharset.BeginReading(), true);
     if (pos != kNotFound)
       sigData.Cut(pos, metaCharset.Length());
   }
@@ -4061,7 +4097,7 @@ nsMsgCompose::BuildQuotedMessageAndSignature(void)
 
   // We will fire off the quote operation and wait for it to
   // finish before we actually do anything with Ender...
-  return QuoteOriginalMessage(mOriginalMsgURI.get(), mWhatHolder);
+  return QuoteOriginalMessage();
 }
 
 //
@@ -4269,9 +4305,9 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString 
       sigOutput.AppendLiteral(CRLF);
 
     if ((reply_on_top != 1 || sig_bottom || !aQuoted) &&
-        sigData.Find("\r-- \r", PR_TRUE) < 0 &&
-        sigData.Find("\n-- \n", PR_TRUE) < 0 &&
-        sigData.Find("\n-- \r", PR_TRUE) < 0)
+        sigData.Find("\r-- \r", true) < 0 &&
+        sigData.Find("\n-- \n", true) < 0 &&
+        sigData.Find("\n-- \r", true) < 0)
     {
       nsDependentSubstring firstFourChars(sigData, 0, 4);
 
@@ -5339,7 +5375,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
         rv = element->GetAttribute(attributeName, attributeValue);
         if (NS_SUCCEEDED(rv))
         {
-          if (attributeValue.Find("moz-signature", PR_TRUE) != kNotFound)
+          if (attributeValue.Find("moz-signature", true) != kNotFound)
           {
             //Now, I am sure I get the right node!
             m_editor->BeginTransaction();

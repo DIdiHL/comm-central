@@ -738,7 +738,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
         nsCOMPtr<nsIInterfaceRequestor> interfaceRequestor;
         msgWindow->GetNotificationCallbacks(getter_AddRefs(interfaceRequestor));
         nsCOMPtr<nsIInterfaceRequestor> aggregateIR;
-        NS_NewInterfaceRequestorAggregation(interfaceRequestor, ir, getter_AddRefs(aggregateIR));
+        MsgNewInterfaceRequestorAggregation(interfaceRequestor, ir, getter_AddRefs(aggregateIR));
         m_mockChannel->SetNotificationCallbacks(aggregateIR);
       }
     }
@@ -2138,7 +2138,6 @@ NS_IMETHODIMP nsImapProtocol::IsBusy(bool *aIsConnectionBusy,
 {
   if (!aIsConnectionBusy || !isInboxConnection)
     return NS_ERROR_NULL_POINTER;
-  NS_LOCK_INSTANCE();
   nsresult rv = NS_OK;
   *aIsConnectionBusy = PR_FALSE;
   *isInboxConnection = PR_FALSE;
@@ -2159,7 +2158,6 @@ NS_IMETHODIMP nsImapProtocol::IsBusy(bool *aIsConnectionBusy,
       *isInboxConnection = PR_TRUE;
 
   }
-  NS_UNLOCK_INSTANCE();
   return rv;
 }
 

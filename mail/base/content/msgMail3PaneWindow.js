@@ -202,6 +202,8 @@ function UpdateMailPaneConfig(aMsgWindowInitialized) {
   const dynamicIds = ["messagesBox", "mailContent", "threadPaneBox"];
   const layouts = ["standard", "wide", "vertical"];
   var layoutView = gPrefBranch.getIntPref("mail.pane_config.dynamic");
+  // Ensure valid value; hard fail if not.
+  layoutView = dynamicIds[layoutView] ? layoutView : kStandardPaneConfig;
   var desiredId = dynamicIds[layoutView];
   document.getElementById("mailContent")
           .setAttribute("layout", layouts[layoutView]);
@@ -312,9 +314,15 @@ const MailPrefObserver = {
   }
 };
 
+/**
+ * Called on startup if there are no accounts.
+ */
 function AutoConfigWizard(okCallback)
 {
-  NewMailAccount(msgWindow, okCallback);
+  if (gPrefBranch.getBoolPref("mail.provider.enabled"))
+    NewMailAccountProvisioner(msgWindow, { okCallback: okCallback });
+  else
+    NewMailAccount(msgWindow, okCallback);
 }
 
 /**
@@ -401,6 +409,7 @@ function OnLoadMessenger()
 
   // This also registers the contentTabType ("contentTab")
   specialTabs.openSpecialTabsOnStartup();
+  tabmail.registerTabType(webSearchTabType);
 
   window.addEventListener("AppCommand", HandleAppCommandEvent, true);
 }

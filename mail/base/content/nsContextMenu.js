@@ -44,6 +44,7 @@ Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
 Components.utils.import("resource:///modules/MailUtils.js");
 
 var gSpellChecker = new InlineSpellChecker();
+var gGlodaBundle = null;
 
 function nsContextMenu(aXulMenu) {
   this.target         = null;
@@ -174,6 +175,28 @@ nsContextMenu.prototype = {
     this.showItem("mailContext-composeemailto", this.onMailtoLink && !this.inThreadPane);
     this.showItem("mailContext-addemail", this.onMailtoLink && !this.inThreadPane);
 
+
+    let searchTheWeb = document.getElementById("mailContext-searchTheWeb");
+    this.showItem(searchTheWeb, !this.inThreadPane && !this.onPlayableMedia &&
+                  this.isContentSelected);
+
+    if (!searchTheWeb.hidden) {
+      let selection = document.commandDispatcher.focusedWindow.getSelection();
+      if (gGlodaBundle === null)
+        gGlodaBundle = Services.strings.createBundle(
+          "chrome://messenger/locale/glodaComplete.properties");
+
+      let key = "glodaComplete.webSearch.label";
+      let selString = selection.toString();
+      if (selString.length > 15) {
+        key += ".truncated";
+        selString = selString.slice(0, 15);
+      }
+
+      searchTheWeb.label = gGlodaBundle.GetStringFromName(key)
+                                      .replace("#1", selString);
+      searchTheWeb.value = selection.toString();
+    }
   },
   initMediaPlayerItems: function CM_initMediaPlayerItems() {
     let onMedia = this.onVideo || this.onAudio;
@@ -292,7 +315,9 @@ nsContextMenu.prototype = {
     this.enableItem("mailContext-moveMenu", canMove && !this.onPlayableMedia);
 
     // Copy is available as long as something is selected.
-    this.showItem("mailContext-copyMenu", msgModifyItems);
+    let canCopy = msgModifyItems || (gMessageDisplay.isDummy &&
+                                     window.arguments[0].scheme == "file");
+    this.showItem("mailContext-copyMenu", canCopy);
 
     this.showItem("mailContext-moveToFolderAgain", msgModifyItems);
     if (msgModifyItems) {

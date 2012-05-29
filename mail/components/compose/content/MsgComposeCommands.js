@@ -2593,6 +2593,7 @@ function DoSpellCheckBeforeSend()
   return getPref("mail.SpellCheckBeforeSend");
 }
 
+//[NOTE]
 /**
  * Handles message sending operations.
  * @param msgType nsIMsgCompDeliverMode of the operation.
@@ -2605,7 +2606,9 @@ function GenericSendMessage(msgType)
   var subject = GetMsgSubjectElement().value;
   msgCompFields.subject = subject;
   Attachments2CompFields(msgCompFields);
-
+  /*[ADD]
+  GetReplyManagerElements(msgCompFields);//Record reply manager information
+  */
   let sending = msgType == nsIMsgCompDeliverMode.Now ||
       msgType == nsIMsgCompDeliverMode.Later ||
       msgType == nsIMsgCompDeliverMode.Background;
@@ -4714,3 +4717,14 @@ function dispatchAttachmentBucketEvent(aEventType, aData) {
   event.initCustomEvent(aEventType, true, true, aData);
   bucket.dispatchEvent(event);
 }
+
+/*[ADD]
+function GetReplyManagerElements(aCompField) {
+  let toggle = document.getElementById("other-elements-toggle").checked;
+  let dateStr = document.getElementById("reminder-date").value;
+  if (toggle) {
+    aCompField.expectReply = true;
+	aCompField.expectReplyDate = dateStr;
+  }
+}
+*/

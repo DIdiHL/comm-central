@@ -1810,7 +1810,7 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
   return msgStore->CopyFolder(srcFolder, this, isMoveFolder, msgWindow,
                               aListener);
 }
-
+//[NOTE]
 NS_IMETHODIMP
 nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile, 
                                       nsIMsgDBHdr *msgToReplace,
@@ -2038,6 +2038,7 @@ nsresult nsMsgLocalMailFolder::InitCopyMsgHdrAndFileStream()
                                getter_AddRefs(mCopyState->m_fileStream));
   NS_ENSURE_SUCCESS(rv, rv);
   if (mCopyState->m_parseMsgState)
+    //[NOTE] new header is generated here
     mCopyState->m_parseMsgState->SetNewMsgHdr(mCopyState->m_newHdr);
   return rv;
 }
@@ -2073,7 +2074,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::BeginCopy(nsIMsgDBHdr *message)
   // if we're copying more than one message, StartMessage will handle this.
   return !mCopyState->m_copyingMultipleMessages ? WriteStartOfNewMessage() : rv;
 }
-
+//[NOTE]
 NS_IMETHODIMP nsMsgLocalMailFolder::CopyData(nsIInputStream *aIStream, PRInt32 aLength)
 {
   //check to make sure we have control of the write.
@@ -2348,6 +2349,14 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(bool aCopySucceeded)
           // turn off offline flag - it's not valid for local mail folders.
           newHdr->AndFlags(~nsMsgMessageFlags::Offline, &newHdrFlags);
           mCopyState->m_destMessages->AppendElement(newHdr, false);
+		  /*[ADD] Check if the ExpectReply flag is set. If set copy the ExpectReplyDate to the header.
+		  bool expectRe;
+		  newHdr->GetIsExpectReply(expectRe);
+		  if (expectRe)
+		  {
+		    newHdr->SetStringProperty("ExpectReplyDate", mExpectReplyDate.get());
+		  }
+		  */
         }
       }
       // we can do undo with the dest folder db, see bug #198909

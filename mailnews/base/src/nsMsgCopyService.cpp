@@ -90,6 +90,9 @@ nsCopyRequest::nsCopyRequest() :
     m_newMsgFlags(0)
 {
   MOZ_COUNT_CTOR(nsCopyRequest);
+  /*[ADD]
+  m_expectReplyDate = nsnull;
+  */
 }
 
 nsCopyRequest::~nsCopyRequest()
@@ -162,6 +165,9 @@ nsCopyRequest::AddNewCopySource(nsIMsgFolder* srcFolder)
 nsMsgCopyService::nsMsgCopyService()
 {
   gCopyServiceLog = PR_NewLogModule("MsgCopyService");
+  /*[ADD]
+  mExpectReplyDate = nsnull;
+  */
 }
 
 nsMsgCopyService::~nsMsgCopyService()
@@ -385,6 +391,12 @@ nsMsgCopyService::DoNextCopy()
                     copySource->m_processed = true;
                 }
                 copyRequest->m_processed = true;
+				/*[ADD]If the mExpectReplyDate attribute is not null, we are copying a message that expects replies
+				if (mExpectReplyDate)
+				{
+				  copyRequest->m_dstFolder->SetExpectReplyDate(mExpectReplyDate.get());
+				}
+				*/
                 rv = copyRequest->m_dstFolder->CopyFileMessage
                     (aFile, aMessage,
                      copyRequest->m_isMoveOrDraftOrTemplate,
@@ -645,6 +657,11 @@ nsMsgCopyService::CopyFileMessage(nsIFile* file,
 
   rv = copyRequest->Init(nsCopyFileMessageType, fileSupport, dstFolder,
                          isDraft, aMsgFlags, aNewMsgKeywords, listener, window, false);
+  /*[ADD]
+  if (aMsgFlags & nsMsgMessageFlags::ExpectReply) {
+    copyRequest->m_expectReplyDate = mExpectReplyDate;
+  }
+  */
   if (NS_FAILED(rv)) goto done;
 
   if (msgToReplace)
@@ -730,3 +747,24 @@ nsMsgCopyService::NotifyCompletion(nsISupports* aSupport,
   return DoNextCopy();
 }
 
+/*[ADD]
+nsresult nsMsgCopyService::SetExpectReplyDate(const char *value)
+{
+  if (value)
+    mExpectReplyDate = value;
+  else
+    mExpectReplyDate.Truncate();
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgCompCopyService::SetExpectReplyDate(const nsAString &value)
+{
+  CopyUTF16toUTF8(value, mExpectReplyDate);
+  return NS_OK;
+}
+
+const char* nsMsgCompCopyService::GetExpectReplyDate()
+{
+  return mExpectReplyDate.get();
+}
+*/

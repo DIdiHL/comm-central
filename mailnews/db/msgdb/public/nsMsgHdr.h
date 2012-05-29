@@ -91,6 +91,7 @@ protected:
     PRUint32    m_messageSize;	// lines for news articles, bytes for mail messages
     PRUint32    m_statusOffset;	// offset in a local mail message of the mozilla status hdr
     PRUint32    m_flags;
+
     // avoid parsing references every time we want one
     nsTArray<nsCString> m_references;
     nsMsgPriorityValue  m_priority;

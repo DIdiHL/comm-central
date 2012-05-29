@@ -133,5 +133,11 @@ interface nsIMsgCompFields : nsISupports {
   attribute boolean needToCheckCharset; 
 
   attribute nsISupports securityInfo;
+  
+  /*[ADD]
+  //Check if the email expects replies from recipients and the deadline for replies.
+  attribute boolean expectReply;
+  attribute AString expectReplyDate;
+  */
 };
 

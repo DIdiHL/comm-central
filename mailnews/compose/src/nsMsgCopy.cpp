@@ -178,6 +178,10 @@ nsMsgCopy::nsMsgCopy()
   mFile = nsnull;
   mMode = nsIMsgSend::nsMsgDeliverNow;
   mSavePref = nsnull;
+  /*[ADD]
+  mExpectReply = false;
+  mExpectReplyDate = nsnull;
+  */
 }
 
 nsMsgCopy::~nsMsgCopy()
@@ -308,10 +312,17 @@ nsMsgCopy::DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
     }
     nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-
+	/*[ADD]If this is an outgoing email we need to check if the sender expects replies
+	PRUint32 newFlag = 0;
+	if (mExpectReply) 
+	{
+	  newFlag |= nsMsgMessageFlags::ExpectReply;
+	  copyService->SetExpectReplyDate(mExpectReplyDate.get());
+	}
+	*/
     rv = copyService->CopyFileMessage(aDiskFile, dstFolder, aMsgToReplace,
                                       aIsDraft,
-                                      aIsDraft ? 0 : nsMsgMessageFlags::Read,
+                                      aIsDraft ? newFlag : newFlag | nsMsgMessageFlags::Read,
                                       EmptyCString(), copyListener, msgWindow);
     // copyListener->mCopyInProgress can only be set when we are in the
     // middle of the shutdown process
@@ -576,4 +587,26 @@ MessageFolderIsLocal(nsIMsgIdentity   *userIdentity,
   if (NS_FAILED(rv)) return rv;
   return NS_OK;
 }
+
+/*[ADD]
+NS_IMETHODIMP nsMsgCompCopy::SetExpectReply(bool value)
+{
+  mExpectReply = value;
+  return NS_OK;
+}
+
+nsresult nsMsgCopy::SetExpectReplyDate(const char *value)
+{
+  if (value)
+    mExpectReplyDate = value;
+  else
+    mExpectReplyDate.Truncate();
+  return NS_OK;
+}
+
+const char* nsMsgCompCopy::GetExpectReplyDate()
+{
+  return mExpectReplyDate.get();
+}
+*/
 

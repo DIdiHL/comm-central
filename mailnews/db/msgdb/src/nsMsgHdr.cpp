@@ -277,6 +277,22 @@ NS_IMETHODIMP nsMsgHdr::MarkFlagged(bool bFlagged)
   return rv;
 }
 
+/*[ADD]
+NS_IMETHODIMP nsMsgHdr::MarkExpectReply(bool bExpectReply)
+{
+  nsresult rv = NS_OK;
+  
+  if(m_mdb)
+  {
+    nsMsgKey key;
+	rv = GetMessageKey(&key);
+	if(NS_SUCCEEDED(rv))
+	  rv = m_mdb->MarkExpectReply(key, bExpectReply, nsnull);
+  }
+  return rv;
+}
+*/
+
 NS_IMETHODIMP nsMsgHdr::GetProperty(const char *propertyName, nsAString &resultProperty)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
@@ -428,7 +444,7 @@ NS_IMETHODIMP nsMsgHdr::SetRecipients(const char *recipients)
   // need to put in rfc822 address parsing code here (or make caller do it...)
   return SetStringColumn(recipients, m_mdb->m_recipientsColumnToken);
 }
-
+  
 nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addresses, PRUint32 numAddresses, nsCAutoString& allRecipients)
 {
   NS_ENSURE_ARG_POINTER(names);
@@ -564,6 +580,7 @@ NS_IMETHODIMP nsMsgHdr::SetDate(PRTime date)
   PRTime2Seconds(date, &seconds);
   return SetUInt32Column((PRUint32) seconds, m_mdb->m_dateColumnToken);
 }
+
 
 NS_IMETHODIMP nsMsgHdr::GetStatusOffset(PRUint32 *result)
 {
@@ -963,6 +980,16 @@ NS_IMETHODIMP nsMsgHdr::GetIsFlagged(bool *isFlagged)
   *isFlagged = !!(m_flags & nsMsgMessageFlags::Marked);
   return NS_OK;
 }
+/*[ADD]
+NS_IMETHODIMP nsMsgHdr::GetIsExpectReply(bool *isExpectReply)
+{
+  NS_ENSURE_ARG_POINTER(isFlagged);
+  if (!(m_initedValues & FLAGS_INITED))
+    InitFlags();
+  *isExpectReply = !!(m_flags & nsMsgMessageFlags::ExpectReply);
+  return NS_OK;
+}
+*/
 
 void nsMsgHdr::ReparentInThread(nsIMsgThread *thread)
 {
@@ -1095,6 +1122,8 @@ NS_IMETHODIMP nsMsgHdr::GetIsKilled(bool *isKilled)
   return NS_OK;
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "nsIStringEnumerator.h"
@@ -1192,6 +1221,7 @@ void nsMsgPropertyEnumerator::PrefetchNext(void)
     }
   }
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 

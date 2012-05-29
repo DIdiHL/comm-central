@@ -114,6 +114,10 @@ public:
   nsresult GetBackupSummaryFile(nsILocalFile **result, const nsACString& newName);
   nsresult GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputStream *stream);
   nsresult HandleAutoCompactEvent(nsIMsgWindow *aMsgWindow);
+/*[ADD]For reply manager
+  nsresult SetExpectReplyDate(const char* value);
+  const char* GetExpectReplyDate();
+*/
 protected:
   
   // this is a little helper function that is not part of the public interface. 
@@ -309,6 +313,10 @@ protected:
   bool mBayesJunkClassifying;
   // Is the current bayes filtering doing trait classification?
   bool mBayesTraitClassifying;
+/*[ADD]For reply manager
+protected:
+  nsCString mExpectReplyDate;
+*/
 };
 
 // This class is a kludge to allow nsMsgKeySet to be used with PRUint32 keys

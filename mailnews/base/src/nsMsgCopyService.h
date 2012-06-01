@@ -95,9 +95,6 @@ public:
     nsCString m_newMsgKeywords;
     nsString m_dstFolderName;      // used for copy folder.
     nsTArray<nsCopySource*> m_copySourceArray; // array of nsCopySource
-	/*[ADD]
-	nsCString m_expectReplyDate
-	*/
 };
 
 class nsMsgCopyService : public nsIMsgCopyService
@@ -105,12 +102,6 @@ class nsMsgCopyService : public nsIMsgCopyService
 public:
   nsMsgCopyService();
   virtual ~nsMsgCopyService();
-  /*[ADD]
-  nsresult SetExpectReplyDate(const char *value);
-  const char* GetExpectReplyDate();
-protected:
-  nsCString                        mExpectReplyDate;
-  */
 
   NS_DECL_ISUPPORTS 
 

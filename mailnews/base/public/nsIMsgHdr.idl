@@ -58,9 +58,6 @@ interface nsIMsgDBHdr : nsISupports
     // accessors, to make our JS cleaner
     readonly attribute boolean isRead;
     readonly attribute boolean isFlagged;
-	/*[ADD]
-	readonly attribute boolean isExpectReply;
-	*/
 
     // Special accessor that checks if a message is part of an ignored subthread
     readonly attribute boolean isKilled;
@@ -69,9 +66,6 @@ interface nsIMsgDBHdr : nsISupports
     void markRead(in boolean read);
     void markFlagged(in boolean flagged);
     void markHasAttachments(in boolean hasAttachments);
-	/*[ADD]
-	void markExpectReply(in boolean expectReply);
-	*/
     
     attribute nsMsgPriorityValue priority;
     void setPriorityString(in string priority);
@@ -106,7 +100,7 @@ interface nsIMsgDBHdr : nsISupports
     attribute string author;
     attribute string subject;
     attribute string recipients;
-	
+    
     /* anything below here still has to be fixed */
     void setReferences(in string references);
     readonly attribute unsigned short numReferences;

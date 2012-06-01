@@ -188,8 +188,6 @@
   <command id="cmd_convertCloud" oncommand="convertSelectedToCloudAttachment(event.target.cloudProvider); event.stopPropagation();"/>
   <command id="cmd_convertAttachment" oncommand="goDoCommand('cmd_convertAttachment')"/>
   <command id="cmd_cancelUpload" oncommand="goDoCommand('cmd_cancelUpload')"/>
-  <!-- [ADD] Reply reminder elements
-  <command id="cmd_toggle_other_replymanager_elements" oncommand="reminderCreator.toggleOtherReplyManagerElements()"/>-->
 </commandset>
 
 <broadcasterset id="composeBroadcasters">
@@ -774,8 +772,7 @@
              ondragdrop="nsDragAndDrop.drop(event, envelopeDragObserver);"
              ondragexit="nsDragAndDrop.dragExit(event, envelopeDragObserver);">
       <hbox id="msgheaderstoolbar-box" flex="1">
-        <!--[NOTE] Address Box Start-->
-		<vbox flex="1" id="addresses-box">
+        <vbox flex="1" id="addresses-box">
           <hbox id="top-gradient-box">
             <hbox align="center" pack="end" style="&headersSpace.style;">
               <label value="&fromAddr.label;" accesskey="&fromAddr.accesskey;" control="msgIdentity"/>
@@ -832,14 +829,7 @@
                      oninput="gContentChanged=true;SetComposeWindowTitle();"
                      onkeypress="subjectKeyPress(event);" />
           </hbox>
-		  <!-- [ADD]
-		  <hbox id="remind-creator-hbox">
-			<checkbox id="other-elements-toggle" label="Expecting replies" checked="false" command="cmd_toggle_other_elements"/>
-			 by 
-			<datepicker id="reminder-date" type="popup" disabled="true"/>
-		  </hbox>-->
         </vbox>
-		<!--[NOTE] end address box-->
         <splitter id="attachmentbucket-sizer" collapsed="true" collapse="after"/>
         <vbox id="attachments-box" collapsed="true">
           <hbox>

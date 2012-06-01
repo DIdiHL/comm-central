@@ -2925,7 +2925,7 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
     mCompFields->SetOtherRandomHeaders((char *) pStr);
 
   AddDefaultCustomHeaders();
-  //[NOTE]
+
   AddMailFollowupToHeader();
   AddMailReplyToHeader();
 
@@ -3246,7 +3246,6 @@ nsMsgComposeAndSend::SnarfAndCopyBody(const char  *attachment1_body,
   return NS_OK;
 }
 
-//[NOTE]
 nsresult
 nsMsgComposeAndSend::Init(
               nsIMsgIdentity  *aUserIdentity,
@@ -3348,7 +3347,6 @@ nsMsgComposeAndSend::Init(
   nsMsgMIMESetConformToStandard(strictly_mime);
   mime_use_quoted_printable_p = strictly_mime;
 
-  //[NOTE]
   rv = InitCompositionFields(fields, aOriginalMsgURI, aType);
   if (NS_FAILED(rv))
     return rv;
@@ -3795,7 +3793,7 @@ nsMsgComposeAndSend::FormatStringWithSMTPHostNameByID(PRInt32 aMsgId, PRUnichar 
     mComposeBundle->FormatStringFromID(NS_ERROR_GET_CODE(aMsgId), params, 1, aString);
   return rv;
 }
-//[NOTE]
+
 void
 nsMsgComposeAndSend::DoDeliveryExitProcessing(nsIURI * aUri, nsresult aExitCode, bool aCheckForMail)
 {
@@ -4186,7 +4184,6 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
    negative, then `error_message' contains the file name (this is kind of
    a kludge...)
  */
- //[NOTE]
 NS_IMETHODIMP
 nsMsgComposeAndSend::CreateAndSendMessage(
               nsIEditor                         *aEditor,
@@ -4426,7 +4423,7 @@ nsMsgGetEnvelopeLine(void)
   PL_strcpy(result + 7 + 24, CRLF);
   return result;
 }
-//[NOTE]
+
 nsresult
 nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
                                nsMsgDeliverMode mode,
@@ -4908,10 +4905,7 @@ nsMsgComposeAndSend::StartMessageCopyOperation(nsIFile          *aFile,
 
   if (mListener)
     mListener->OnGetDraftFolderURI(m_folderName.get());
-  /*[ADD] pass the mMsgCompField to the msg copy object
-  mCopyObj->SetExpectReply(mCompFields->GetExpectReply());
-  mCopyObj->SetExpectReplyDate(mCompFields->GetExpectReplyDate());
-  */
+
   rv = mCopyObj->StartCopyOperation(mUserIdentity, aFile, mode,
                                     this, m_folderName.get(), mMsgToReplace);
   return rv;

@@ -133,14 +133,6 @@ public:
   bool                            mIsDraft;
   nsCOMPtr<nsIMsgSend>            mMsgSendObj;
   char                            *mSavePref;
-  /*[ADD]
-  bool GetExpectectReply() {return mExpectReply;}
-  nsresult SetExpectReplyDate(const char *value);
-  const char* GetExpectReplyDate();
-protected:
-  bool                            mExpectReply;
-  nsCString                        mExpectReplyDate;
-  */
 };
 
 // Useful function for the back end...

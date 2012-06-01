@@ -195,9 +195,6 @@ nsMsgDBFolder::nsMsgDBFolder(void)
   mProcessingFlag[5].bit = nsMsgProcessingFlags::NotReportedClassified;
   for (PRUint32 i = 0; i < nsMsgProcessingFlags::NumberOfFlags; i++)
     mProcessingFlag[i].keys = nsMsgKeySetU::Create();
-  /*[ADD]
-  mExpectReplyDate = nsnull;
-  */
 }
 
 nsMsgDBFolder::~nsMsgDBFolder(void)
@@ -5918,28 +5915,6 @@ void nsMsgDBFolder::ClearProcessingFlags()
     mProcessingFlag[i].keys = nsMsgKeySetU::Create();
   }
 }
-
-/*[ADD]
-nsresult nsMsgCopyService::SetExpectReplyDate(const char *value)
-{
-  if (value)
-    mExpectReplyDate = value;
-  else
-    mExpectReplyDate.Truncate();
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgCompCopyService::SetExpectReplyDate(const nsAString &value)
-{
-  CopyUTF16toUTF8(value, mExpectReplyDate);
-  return NS_OK;
-}
-
-const char* nsMsgCompCopyService::GetExpectReplyDate()
-{
-  return mExpectReplyDate.get();
-}
-*/
 
 /* static */ nsMsgKeySetU* nsMsgKeySetU::Create()
 {

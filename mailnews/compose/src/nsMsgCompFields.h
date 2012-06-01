@@ -208,12 +208,6 @@ public:
 
   nsresult SplitRecipientsEx(const nsAString &recipients,
                              nsTArray<nsMsgRecipient> &aResult); 
-							 
-  /*[ADD]
-  bool GetExpectectReply() {return m_expectReply;}
-  nsresult SetExpectReplyDate(const char *value);
-  const char* GetExpectReplyDate();
-  */ 
 
 protected:
   char*       m_headers[MSG_MAX_HEADERS];
@@ -229,10 +223,6 @@ protected:
   PRInt32     m_receiptHeaderType;        /* receipt header type */
   nsCString   m_DefaultCharacterSet;
   bool        m_needToCheckCharset;
-  /*[ADD]
-  bool        m_expectReply;
-  nsCString   m_expectReplyDate;
-  */
 
   nsCOMPtr<nsISupports> mSecureCompFields;
 };

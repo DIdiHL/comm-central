@@ -780,31 +780,3 @@ NS_IMETHODIMP nsMsgCompFields::SetNeedToCheckCharset(bool aCheck)
   m_needToCheckCharset = aCheck;
   return NS_OK;
 }
-
-/*[ADD]
-NS_IMETHODIMP nsMsgCompFields::SetExpectReply(bool value)
-{
-  m_expectReply = value;
-  return NS_OK;
-}
-
-nsresult nsMsgCompFields::SetExpectReplyDate(const char *value)
-{
-  if (value)
-    m_expectReplyDate = value;
-  else
-    m_expectReplyDate.Truncate();
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgCompFields::SetExpectReplyDate(const nsAString &value)
-{
-  CopyUTF16toUTF8(value, m_expectReplyDate);
-  return NS_OK;
-}
-
-const char* nsMsgCompFields::GetExpectReplyDate()
-{
-  return m_expectReplyDate.get();
-}
-*/

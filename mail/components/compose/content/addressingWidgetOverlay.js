@@ -1238,3 +1238,10 @@ AutomatedAutoCompleteHandler.prototype =
       throw Components.results.NS_NOINTERFACE;
   }
 }
+
+function toggleOtherReplyManagerElements()
+{
+  let toggle = document.getElementById("other-elements-toggle");
+  let datePicker = document.getElementById("reminder-date");
+  datePicker.disabled = !toggle.checked;
+}

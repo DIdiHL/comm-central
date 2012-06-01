@@ -159,6 +159,7 @@ public:
   virtual nsresult Open(nsILocalFile *aFolderName, bool aCreate,
                         bool aLeaveInvalidDB);
   virtual nsresult IsHeaderRead(nsIMsgDBHdr *hdr, bool *pRead);
+  virtual nsresult IsHeaderExpectReply(nsIMsgDBHdr *hdr, bool *pExpectReply);
   virtual nsresult MarkHdrReadInDB(nsIMsgDBHdr *msgHdr, bool bRead,
                                nsIDBChangeListener *instigator);
   nsresult OpenInternal(nsILocalFile *aFolderName, bool aCreate,

@@ -119,6 +119,9 @@ var gSendDefaultCharset;
 var gCharsetTitle;
 var gCharsetConvertManager;
 var _gComposeBundle;
+
+//reply manager global variables
+var gMsgID;//stores the message ID
 function getComposeBundle() {
   // That one has to be lazy. Getting a reference to an element with a XBL
   // binding attached will cause the XBL constructors to fire if they haven't
@@ -310,7 +313,7 @@ var stateListener = {
   },
 
   ComposeProcessDone: function(aResult) {
-    gWindowLocked = false;
+	gWindowLocked = false;
     enableEditableFields();
     updateComposeItems();
 
@@ -429,6 +432,44 @@ var progressListener = {
 
       throw Components.results.NS_NOINTERFACE;
     }
+};
+
+//reply manager send listener
+var rmSendListener = {
+  // nsIMsgSendListener
+  onStartSending: function (aMsgID, aMsgSize) {},
+  onProgress: function (aMsgID, aProgress, aProgressMax) {},
+  onStatus: function (aMsgID, aMsg) {},
+  onStopSending: function (aMsgID, aStatus, aMsg, aReturnFile) {
+	gMsgID = aMsgID.substring(1, aMsgID.length - 1);
+  },
+  onGetDraftFolderURI: function (aFolderURI) {},
+  onSendNotPerformed: function (aMsgID, aStatus) {},
+};
+
+//reply manager compose state listener
+var rmComposeStateListener = {
+  NotifyComposeFieldsReady: function() {},
+
+  NotifyComposeBodyReady: function() {},
+
+  ComposeProcessDone: function(aResult) {
+	let rdf = Components.classes['@mozilla.org/rdf/rdf-service;1']
+                        .getService(Components.interfaces.nsIRDFService);
+	let folder = rdf.GetResource(gMsgCompose.savedFolderURI)
+                    .QueryInterface(Components.interfaces.nsIMsgFolder);
+	let msgDB = folder.msgDatabase;
+	let savedMsgHdr = msgDB.getMsgHdrForMessageID(gMsgID);
+	let toggle = document.getElementById("other-elements-toggle").checked;
+    let dateStr = document.getElementById("reminder-date").value;
+	if (savedMsgHdr != null && toggle)
+	{
+	  savedMsgHdr.markExpectReply(true);
+	  savedMsgHdr.setStringProperty("ExpectReplyDate", dateStr);
+	}
+  },
+
+  SaveInFolderDone: function(folderURI) {}
 };
 
 var defaultController = {
@@ -2238,6 +2279,7 @@ function ComposeStartup(recycled, aParams)
   // Set the close listener.
   gMsgCompose.recyclingListener = gComposeRecyclingListener;
   gMsgCompose.addMsgSendListener(gSendListener);
+  gMsgCompose.addMsgSendListener(rmSendListener);//add reply manager send listener
   // Lets the compose object knows that we are dealing with a recycled window.
   gMsgCompose.recycledWindow = recycled;
 
@@ -2304,6 +2346,7 @@ function ComposeStartup(recycled, aParams)
   document.getElementById("msgcomposeWindow").dispatchEvent(event);
 
   gMsgCompose.RegisterStateListener(stateListener);
+  gMsgCompose.RegisterStateListener(rmComposeStateListener);//register reply manager compose state listener
 
   if (recycled)
   {
@@ -2475,7 +2518,11 @@ function ComposeUnload()
   EditorCleanup();
 
   if (gMsgCompose)
+  {
     gMsgCompose.removeMsgSendListener(gSendListener);
+	//remove reply manager send listener
+	gMsgCompose.removeMsgSendListener(rmSendListener);
+  }
 
   RemoveMessageComposeOfflineQuitObserver();
   RemoveDirectoryServerObserver(null);
@@ -2485,7 +2532,11 @@ function ComposeUnload()
   if (gCurrentAutocompleteDirectory)
     RemoveDirectorySettingsObserver(gCurrentAutocompleteDirectory);
   if (gMsgCompose)
+  {
     gMsgCompose.UnregisterStateListener(stateListener);
+	//unregister reply manager send listener
+	gMsgCompose.UnregisterStateListener(rmComposeStateListener);
+  }
   if (gAutoSaveTimeout)
     clearTimeout(gAutoSaveTimeout);
 }
@@ -2593,6 +2644,7 @@ function DoSpellCheckBeforeSend()
   return getPref("mail.SpellCheckBeforeSend");
 }
 
+//[NOTE]
 /**
  * Handles message sending operations.
  * @param msgType nsIMsgCompDeliverMode of the operation.
@@ -2605,7 +2657,6 @@ function GenericSendMessage(msgType)
   var subject = GetMsgSubjectElement().value;
   msgCompFields.subject = subject;
   Attachments2CompFields(msgCompFields);
-
   let sending = msgType == nsIMsgCompDeliverMode.Now ||
       msgType == nsIMsgCompDeliverMode.Later ||
       msgType == nsIMsgCompDeliverMode.Background;

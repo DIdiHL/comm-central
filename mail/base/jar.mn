@@ -5,6 +5,8 @@ messenger.jar:
 % overlay chrome://global/content/viewSource.xul chrome://messenger/content/viewSourceOverlay.xul
 % overlay chrome://global/content/config.xul chrome://messenger/content/configEditorOverlay.xul
 % overlay chrome://editor/content/EdSpellCheck.xul chrome://messenger/content/EdSpellCheckOverlay.xul
+% overlay chrome://messenger/content/msgHdrViewOverlay.xul chrome://messenger/content/replyManagerMsgHdrViewOverlay.xul
+% overlay chrome://messenger/content/mailWindowOverlay.xul chrome://messenger/content/replyManagerMailWindowOverlay.xul
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/content/messenger.css
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/addressbook/addressbook.css
@@ -82,6 +84,10 @@ messenger.jar:
     content/messenger/threadPane.js                 (content/threadPane.js)
     content/messenger/threadPaneColumnPicker.xml    (content/threadPaneColumnPicker.xml)
     content/messenger/protovis-r2.6-modded.js       (content/protovis-r2.6-modded.js)
+    content/messenger/replyManagerMsgHdrViewOverlay.xul (content/replyManagerMsgHdrViewOverlay.xul)
+    content/messenger/replyManagerMsgHdrViewOverlay.js (content/replyManagerMsgHdrViewOverlay.js)
+    content/messenger/replyManagerMailWindowOverlay.xul (content/replyManagerMailWindowOverlay.xul)
+    content/messenger/replyManagerMailWindowOverlay.js (content/replyManagerMailWindowOverlay.js)
 #ifdef XP_MACOSX
     content/messenger/macMenuOverlay.xul            (content/macMenuOverlay.xul)
 #endif

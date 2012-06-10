@@ -435,38 +435,35 @@ var progressListener = {
 };
 
 //reply manager send listener
-var rmSendListener = {
+var replyManagerSendListener = {
   // nsIMsgSendListener
   onStartSending: function (aMsgID, aMsgSize) {},
   onProgress: function (aMsgID, aProgress, aProgressMax) {},
   onStatus: function (aMsgID, aMsg) {},
   onStopSending: function (aMsgID, aStatus, aMsg, aReturnFile) {
-	gMsgID = aMsgID.substring(1, aMsgID.length - 1);
+    //aMsgID starts with a < and ends with a >. Take the substring to strip the brackets.
+    gMsgID = aMsgID.substring(1, aMsgID.length - 1);
   },
   onGetDraftFolderURI: function (aFolderURI) {},
   onSendNotPerformed: function (aMsgID, aStatus) {},
 };
 
 //reply manager compose state listener
-var rmComposeStateListener = {
+var replyManagerComposeStateListener = {
   NotifyComposeFieldsReady: function() {},
 
   NotifyComposeBodyReady: function() {},
 
   ComposeProcessDone: function(aResult) {
-	let rdf = Components.classes['@mozilla.org/rdf/rdf-service;1']
-                        .getService(Components.interfaces.nsIRDFService);
-	let folder = rdf.GetResource(gMsgCompose.savedFolderURI)
-                    .QueryInterface(Components.interfaces.nsIMsgFolder);
-	let msgDB = folder.msgDatabase;
-	let savedMsgHdr = msgDB.getMsgHdrForMessageID(gMsgID);
-	let toggle = document.getElementById("other-elements-toggle").checked;
+    let folder = MailUtils.getFolderForURI(gMsgCompose.savedFolderURI);
+    let msgDB = folder.msgDatabase;
+    let savedMsgHdr = msgDB.getMsgHdrForMessageID(gMsgID);
+    let toggle = document.getElementById("other-elements-toggle").checked;
     let dateStr = document.getElementById("reminder-date").value;
 	if (savedMsgHdr != null && toggle)
-	{
-	  savedMsgHdr.markExpectReply(true);
-	  savedMsgHdr.setStringProperty("ExpectReplyDate", dateStr);
-	}
+    {
+      replyManagerUtils.setExpectReplyForHdr(savedMsgHdr);
+    }
   },
 
   SaveInFolderDone: function(folderURI) {}
@@ -2279,7 +2276,7 @@ function ComposeStartup(recycled, aParams)
   // Set the close listener.
   gMsgCompose.recyclingListener = gComposeRecyclingListener;
   gMsgCompose.addMsgSendListener(gSendListener);
-  gMsgCompose.addMsgSendListener(rmSendListener);//add reply manager send listener
+  gMsgCompose.addMsgSendListener(replyManagerSendListener);//add reply manager send listener
   // Lets the compose object knows that we are dealing with a recycled window.
   gMsgCompose.recycledWindow = recycled;
 
@@ -2346,7 +2343,7 @@ function ComposeStartup(recycled, aParams)
   document.getElementById("msgcomposeWindow").dispatchEvent(event);
 
   gMsgCompose.RegisterStateListener(stateListener);
-  gMsgCompose.RegisterStateListener(rmComposeStateListener);//register reply manager compose state listener
+  gMsgCompose.RegisterStateListener(replyManagerComposeStateListener);//register reply manager compose state listener
 
   if (recycled)
   {
@@ -2521,7 +2518,7 @@ function ComposeUnload()
   {
     gMsgCompose.removeMsgSendListener(gSendListener);
 	//remove reply manager send listener
-	gMsgCompose.removeMsgSendListener(rmSendListener);
+    gMsgCompose.removeMsgSendListener(replyManagerSendListener);
   }
 
   RemoveMessageComposeOfflineQuitObserver();
@@ -2535,7 +2532,7 @@ function ComposeUnload()
   {
     gMsgCompose.UnregisterStateListener(stateListener);
 	//unregister reply manager send listener
-	gMsgCompose.UnregisterStateListener(rmComposeStateListener);
+	gMsgCompose.UnregisterStateListener(replyManagerComposeStateListener);
   }
   if (gAutoSaveTimeout)
     clearTimeout(gAutoSaveTimeout);

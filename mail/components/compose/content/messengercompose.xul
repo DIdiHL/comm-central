@@ -831,8 +831,9 @@
                      onkeypress="subjectKeyPress(event);" />
           </hbox>
 		  <hbox id="replymanager-hbox">
-			<checkbox id="other-elements-toggle" label="Expecting replies" checked="false" command="cmd_toggle_other_replymanager_elements"/>
-			 by 
+		    <!-- LOCALIZATION NOTE other-elements-toggle.label -->
+			<!-- ENTITY other-elements-toggle.label "Expecting replies by " -->
+			<checkbox id="other-elements-toggle" label="Expecting replies by " checked="false" command="cmd_toggle_other_replymanager_elements"/>
 			<datepicker id="reminder-date" type="popup" disabled="true"/>
 		  </hbox>
         </vbox>

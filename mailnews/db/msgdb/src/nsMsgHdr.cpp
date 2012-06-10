@@ -284,7 +284,7 @@ NS_IMETHODIMP nsMsgHdr::MarkExpectReply(bool bExpectReply)
   if(m_mdb)
   {
     nsMsgKey key;
-	rv = GetMessageKey(&key);
+    rv = GetMessageKey(&key);
 	if(NS_SUCCEEDED(rv))
 	  rv = m_mdb->MarkExpectReply(key, bExpectReply, nsnull);
   }

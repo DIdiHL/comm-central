@@ -1,43 +1,34 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
-Components.utils.import("resource://app/modules/replyManagerUtils.js");
-Components.utils.import("resource://app/modules/replyManagerCalendar.js");
+const replyManagerPrefs = Components.classes["@mozilla.org/preferences-service;1"]
+                    .getService(Components.interfaces.nsIPrefBranch).getBranch("replymanager.");
+const cceButton = "createCalendarEventButton";
+const ccePref = "create_calendar_event_enabled";
 
-const createCalendarEventMenuitem = "createCalendarEventMenuitem";
-
-function onLoad() 
-{
-  let menuitem = document.getElementById(createCalendarEventMenuitem);
+function onLoad() {
+  let createCalendarEventButton = document.getElementById(cceButton);
+  let buttonToggle = replyManagerPrefs.getBoolPref(ccePref);
   let createCalendarEventCmd = document.getElementById("cmd_toggleCreateCalendarEvent");
-  replyManagerCalendar.ensureCalendarExists();
-  try 
-  {
-    /* If this statement doesn't throw an exception, Lightning is installed, we can enable the createCalendarEvent.
-     * The same statement is called within replyManagerCalendar.ensureCalendarExists(). I put that function before the try
-     * statement because there maybe unexpected exceptions in that function call which will unnecessarily drive the program
-     * flow to the catch block.*/
+  try {
+    //If this statement doesn't throw an exception, Lightning is installed, we can enable the createCalendarEventButton
     calendarManager = Components.classes["@mozilla.org/calendar/manager;1"].getService(Components.interfaces.calICalendarManager);
     createCalendarEventCmd.removeAttribute("disabled");
-    /*The checked state of the menuitem is stored in the replyManagerUtils module
-     *to let the module know that the user wants to create a calendar event.*/
-    replyManagerUtils.createCalendarEventEnabled = menuitem.checked;
+    if (buttonToggle)
+    {
+      createCalendarEventButton.checked = true;
+    } else {
+      createCalendarEventButton.checked = false;
+    }
     window.removeEventListener("load", onLoad);
-  } 
-  catch (err) 
-  {
-    /*An exception was thrown, most probably because Lightning doesn't exist.
-     *We are unable to create calendar events so disable the menuitem.*/
+  } catch (err) {
     createCalendarEventCmd.setAttribute('disabled', 'true');
-    replyManagerUtils.createCalendarEventEnabled = false;
+    replyManagerPrefs.setBoolPref(ccPref, false);
     window.removeEventListener("load", onLoad);
   }
 }
 
-function toggleCreateCalendarEvent() 
-{
-  let menuitem = document.getElementById(createCalendarEventMenuitem);
-  replyManagerUtils.createCalendarEventEnabled = menuitem.checked;
+function toggleCreateCalendarEvent() {
+  let button = document.getElementById(cceButton);
+  button.checked = !button.checked;
+  replyManagerPrefs.setBoolPref(ccePref, button.checked);
 }
 
 window.addEventListener("load", onLoad);

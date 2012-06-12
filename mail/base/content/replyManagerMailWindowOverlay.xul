@@ -21,8 +21,8 @@
     <menupopup id="replyManagerToolsPopup">
       <menu id="replyManagerSettings" label="&replyManagerSettings.label;">
         <menupopup id="replyManagerSettingsPopup">
-          <menuitem id="createCalendarEventMenuitem" label="&createCalendarEventMenuitem.label;" type="checkbox"
-                    checked="false" persist="checked"/>
+          <menuitem id="createCalendarEventMenuitem" label="&createCalendarEventMenuitem.label;" 
+                    autocheck="false" type="checkbox" command="cmd_toggleCreateCalendarEvent"/>
         </menupopup>
       </menu>
     </menupopup>

@@ -60,6 +60,8 @@
   %customizeToolbarDTD;
   <!ENTITY % textcontextDTD SYSTEM "chrome://global/locale/textcontext.dtd">
   %textcontextDTD;
+  <!ENTITY % replyManagerDTD SYSTEM "chrome://messenger/locale/replyManager.dtd">
+  %replyManagerDTD;
 ]>
 
 <window id="msgcomposeWindow"
@@ -831,9 +833,7 @@
                      onkeypress="subjectKeyPress(event);" />
           </hbox>
 		  <hbox id="replymanager-hbox">
-		    <!-- LOCALIZATION NOTE other-elements-toggle.label -->
-			<!-- ENTITY other-elements-toggle.label "Expecting replies by " -->
-			<checkbox id="other-elements-toggle" label="Expecting replies by " checked="false" command="cmd_toggle_other_replymanager_elements"/>
+			<checkbox id="other-elements-toggle" label="&other-elements-toggle.label;" checked="false" command="cmd_toggle_other_replymanager_elements"/>
 			<datepicker id="reminder-date" type="popup" disabled="true"/>
 		  </hbox>
         </vbox>

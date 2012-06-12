@@ -1,0 +1,14 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this file,
+     You can obtain one at http://mozilla.org/MPL/2.0/.-->
+
+<!-- replyManagerMailWindowOverlay -->
+<!ENTITY replyManagerTools.label "Reply Manager">
+<!ENTITY replyManagerSettings.label "Settings">
+<!ENTITY createCalendarEventMenuitem.label "Create Calendar Event">
+
+<!-- replyManagerMsgHdrViewOverlay -->
+<!ENTITY BeforeExpectReplyDateLabel.value "Expecting replies by">
+
+<!-- messengercompose -->
+<!ENTITY other-elements-toggle.label "Expecting replies by ">

@@ -111,13 +111,12 @@ var replyManagerUtils = {
     {
       if (addressStr != "")
       {
-        /* The string returned by extractHeaderAddressMailboxes is comma separated. Each
-         * comma is followed by a space so we need to split by ", " instead of ",". */
-        let addressList = headerParser.extractHeaderAddressMailboxes(addressStr).split(", ");
-        for (let i = 0; i != addressList.length; ++i)
+        let addressListObj = {};
+        headerParser.parseHeadersWithArray(addressStr, addressListObj, {}, {});
+        for each (let recipient in addressListObj.value)
         {
           //Let's make the address the name of the property
-          recipients[addressList[i]] = true;
+          recipients[recipient] = true;
         }
       }
     };

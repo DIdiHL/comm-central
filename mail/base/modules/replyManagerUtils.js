@@ -12,6 +12,7 @@ const gPrefBranch = Cc["@mozilla.org/preferences-service;1"]
                     .getBranch(null);
 Cu.import("resource://app/modules/gloda/public.js");
 Cu.import("resource://app/modules/replyManagerCalendar.js");
+Cu.import("resource:///modules/mailServices.js");
 
 var replyManagerUtils = {
   /** Get the list of email addresses who have not replied to the message
@@ -100,18 +101,35 @@ var replyManagerUtils = {
   //Add this expect reply entry to calendar
   addHdrToCalendar: function replyManagerUtils_addHdrToCalendar(aMsgHdr) {
     if (!aMsgHdr.isExpectReply) throw "Error: this email is not expecting replies!";
-    let recipients = "";
-    let ccList = (aMsgHdr.ccList == "") ?  "" : ", " + aMsgHdr.ccList;
-    let bccList = (aMsgHdr.bccList == "") ? "" : ", " + aMsgHdr.bccList;
-    if (aMsgHdr.recipients == ccList)
-      recipients = ccList.substring(2, ccList.length) + bccList;
-    else if (aMsgHdr.recipients == bccList)
-      recipients = bccList.substring(2, bccList.length);
-    else 
-      recipients = aMsgHdr.recipients + ccList + bccList;
+    let headerParser = MailServices.headerParser;
+    /* We need to merge the three fields and remove duplicates.
+     * To make it simpler, we can create an object and make
+     * each address a property of that object. This prevents
+    * duplicates.*/
+    let recipients = {};
+    let mergeFunction = function (addressStr)
+    {
+      if (addressStr != "")
+      {
+        /* The string returned by extractHeaderAddressMailboxes is comma separated. Each
+         * comma is followed by a space so we need to split by ", " instead of ",". */
+        let addressList = headerParser.extractHeaderAddressMailboxes(addressStr).split(", ");
+        for (let i = 0; i != addressList.length; ++i)
+        {
+          //Let's make the address the name of the property
+          recipients[addressList[i]] = true;
+        }
+      }
+    };
+    mergeFunction(aMsgHdr.recipients);
+    mergeFunction(aMsgHdr.ccList);
+    mergeFunction(aMsgHdr.bccList);
+    let finalRecipients = Object.getOwnPropertyNames(recipients);
+
     let dateStr = aMsgHdr.getStringProperty("ExpectReplyDate");
     var date = new Date(dateStr);
-    var status = "\"" + aMsgHdr.subject + "\" is expecting replies from " + recipients + " by " + dateStr;
+    var status = "\"" + aMsgHdr.subject + "\" is expecting replies from " 
+                      + finalRecipients + " by " + dateStr;
     replyManagerCalendar.addEvent(date, aMsgHdr.messageId, status);
   },
 

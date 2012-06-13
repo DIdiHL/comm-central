@@ -20,21 +20,21 @@ function onLoad()
   
   try 
   {
-    /* If this statement doesn't throw an exception, Lightning is installed, we can enable the createCalendarEvent.
-     * The same statement is called within replyManagerCalendar.ensureCalendarExists(). I put that function before the try
-     * statement because there maybe unexpected exceptions in that function call which will unnecessarily drive the program
-     * flow to the catch block.*/
+    /* If this statement doesn't throw an exception, Lightning is installed, we can 
+     * enable the createCalendarEvent. The same statement is called within 
+     * replyManagerCalendar.ensureCalendarExists(). I put that function before the 
+     * try statement because there maybe unexpected exceptions in that function call 
+     * which will unnecessarily drive the program flow to the catch block.*/
     calendarManager = Components.classes["@mozilla.org/calendar/manager;1"]
                                 .getService(Components.interfaces.calICalendarManager);
     createCalendarEventCmd.removeAttribute("disabled");
-    /* The checked state of the menuitem is stored in the replyManagerUtils module
+    /* The checked state of the menuitem is stored in the preference
      * to let the module know that the user wants to create a calendar event.
      * The checked attribute of this element is a string, passing it to setBoolPref as
      * an argument will not change the value of the preference. So I assign this object
      * a boolean property called checked and make the literal meaning of the checked
      * attribute match the boolean property.*/
-    menuitem.checked = menuitemToggle;
-    menuitem.setAttribute("checked", menuitem.checked);
+    menuitem.setAttribute("checked", menuitemToggle);
   } 
   catch (err) 
   {
@@ -49,9 +49,8 @@ function onLoad()
 function toggleCreateCalendarEvent() 
 {
   let menuitem = document.getElementById(createCalendarEventMenuitem);
-  //The boolean property is passed to the function instead of the element's attribute
-  //The checked attribute of the menuitem is modified in the observer.
-  gPrefBranch.setBoolPref("mail.replymanager.create_calendar_event_enabled", !menuitem.checked);
+  let prefValue = gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled");
+  gPrefBranch.setBoolPref("mail.replymanager.create_calendar_event_enabled", !prefValue);
 }
 
 var prefObserver = {
@@ -84,8 +83,8 @@ var prefObserver = {
         we need to change the state of the menuitem in this window accordingly.*/
       case "create_calendar_event_enabled":
         let menuitem = document.getElementById(createCalendarEventMenuitem);
-        menuitem.checked = prefObserver.prefs.getBoolPref("create_calendar_event_enabled");
-        menuitem.setAttribute("checked", menuitem.checked)
+        let newPrefValue = gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled");
+        menuitem.setAttribute("checked", newPrefValue)
         break;
     }
   }

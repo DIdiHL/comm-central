@@ -9,7 +9,6 @@ const Cc = Components.classes;
 
 Cu.import("resource://gre/modules/errUtils.js");
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource://calendar/modules/calUtils.jsm");
 
 /**
  * replyManagerCalendar
@@ -25,6 +24,7 @@ var replyManagerCalendar = {
     let calName = "replyManagerCalendar";
     this.calendarManager = Cc["@mozilla.org/calendar/manager;1"]
                             .getService(Components.interfaces.calICalendarManager);
+    Cu.import("resource://calendar/modules/calUtils.jsm");
     if (this.calendarManager == null) throw "Error: Lightning not found!";
     let calendars = this.calendarManager.getCalendars({});
     let calFound = false;

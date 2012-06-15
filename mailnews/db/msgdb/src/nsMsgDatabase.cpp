@@ -2052,17 +2052,6 @@ nsresult nsMsgDatabase::IsRead(nsMsgKey key, bool *pRead)
   return rv;
 }
 
-nsresult nsMsgDatabase::IsExpectReply(nsMsgKey key, bool *pExpectReply)
-{
-  nsCOMPtr <nsIMsgDBHdr> msgHdr;
-
-  nsresult rv = GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
-  if (NS_FAILED(rv) || !msgHdr)
-    return NS_MSG_MESSAGE_NOT_FOUND; // XXX return rv?
-  rv = IsHeaderExpectReply(msgHdr, pExpectReply);
-  return rv;
-}
-
 PRUint32  nsMsgDatabase::GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags)
 {
   PRUint32  statusFlags = origFlags;
@@ -2088,19 +2077,6 @@ nsresult nsMsgDatabase::IsHeaderRead(nsIMsgDBHdr *msgHdr, bool *pRead)
   PRUint32 flags;
   hdr->GetRawFlags(&flags);
   *pRead = !!(flags & nsMsgMessageFlags::Read);
-  return NS_OK;
-}
-
-nsresult nsMsgDatabase::IsHeaderExpectReply(nsIMsgDBHdr *msgHdr, bool *pExpectReply)
-{
-  if (!msgHdr)
-    return NS_MSG_MESSAGE_NOT_FOUND;
-
-  nsMsgHdr* hdr = static_cast<nsMsgHdr*>(msgHdr);          // closed system, cast ok
-  // can't call GetFlags, because it will be recursive.
-  PRUint32 flags;
-  hdr->GetRawFlags(&flags);
-  *pExpectReply = !!(flags & nsMsgMessageFlags::ExpectReply);
   return NS_OK;
 }
 
@@ -2210,20 +2186,6 @@ NS_IMETHODIMP nsMsgDatabase::MarkReplied(nsMsgKey key, bool bReplied,
                                          nsIDBChangeListener *instigator /* = NULL */)
 {
   return SetKeyFlag(key, bReplied, nsMsgMessageFlags::Replied, instigator);
-}
-
-NS_IMETHODIMP nsMsgDatabase::MarkExpectReply(nsMsgKey key, bool bExpectReply,
-                                      nsIDBChangeListener *instigator)
-{
-  nsresult rv;
-  nsCOMPtr <nsIMsgDBHdr> msgHdr;
-
-  rv = GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
-  if (NS_FAILED(rv) || !msgHdr)
-    return NS_MSG_MESSAGE_NOT_FOUND; // XXX return rv?
-
-  rv = MarkHdrExpectReply(msgHdr, bExpectReply, instigator);
-  return rv;
 }
 
 NS_IMETHODIMP nsMsgDatabase::MarkForwarded(nsMsgKey key, bool bForwarded,
@@ -2652,12 +2614,6 @@ NS_IMETHODIMP nsMsgDatabase::MarkHdrReplied(nsIMsgDBHdr *msgHdr, bool bReplied,
                          nsIDBChangeListener *instigator)
 {
   return SetMsgHdrFlag(msgHdr, bReplied, nsMsgMessageFlags::Replied, instigator);
-}
-
-NS_IMETHODIMP nsMsgDatabase::MarkHdrExpectReply(nsIMsgDBHdr *msgHdr, bool bExpectReply,
-                                         nsIDBChangeListener *instigator)
-{
-  return SetMsgHdrFlag(msgHdr, bExpectReply, nsMsgMessageFlags::ExpectReply, instigator);
 }
 
 NS_IMETHODIMP nsMsgDatabase::MarkHdrMarked(nsIMsgDBHdr *msgHdr, bool mark,

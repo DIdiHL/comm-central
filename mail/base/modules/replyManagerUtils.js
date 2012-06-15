@@ -82,8 +82,7 @@ var replyManagerUtils = {
    */
   setExpectReplyForHdr: function replyManagerUtils_setExpectReplyForHdr(aMsgHdr, aDateStr) 
   {
-    aMsgHdr.markExpectReply(true);
-    aMsgHdr.setStringProperty("ExpectReplyDate", aDateStr);
+    aMsgHdr.markExpectReply(true, aDateStr);
     if (gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled"))
       replyManagerUtils.addHdrToCalendar(aMsgHdr);
   },
@@ -93,14 +92,15 @@ var replyManagerUtils = {
    */
   resetExpectReplyForHdr: function replyManagerUtils_resetExpectReplyForHdr(aMsgHdr) 
   {
-    aMsgHdr.markExpectReply(false);
+    aMsgHdr.markExpectReply(false, "");
     if (gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled"))
       replyManagerUtils.removeHdrFromCalendar(aMsgHdr);
   },
 
   //Add this expect reply entry to calendar
   addHdrToCalendar: function replyManagerUtils_addHdrToCalendar(aMsgHdr) {
-    if (!aMsgHdr.isExpectReply) throw "Error: this email is not expecting replies!";
+    if (!aMsgHdr.isExpectReply) 
+      throw new Error("Error: this email is not expecting replies!");
     let headerParser = MailServices.headerParser;
     /* We need to merge the three fields and remove duplicates.
      * To make it simpler, we can create an object and make

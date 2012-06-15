@@ -373,6 +373,8 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   void MarkHdrMarked(in nsIMsgDBHdr msgHdr, in boolean mark,
                          in nsIDBChangeListener instigator);
   
+  void MarkHdrExpectReply(in nsIMsgDBHdr msgHdr, in boolean bExpectReply, in nsIDBChangeListener instigator);
+  
   /**
    * Remove the new status from a message.
    *
@@ -418,11 +420,13 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
                                in nsIDBChangeListener instigator);
   void MarkHeaderKilled(in nsIMsgDBHdr msg, in boolean bIgnored,
                         in nsIDBChangeListener instigator);
+  void MarkExpectReply(in nsMsgKey key, in boolean bExpectReply, in nsIDBChangeListener instigator);
 
   boolean IsRead(in nsMsgKey key);
   boolean IsIgnored(in nsMsgKey key);
   boolean IsMarked(in nsMsgKey key);
   boolean HasAttachments(in nsMsgKey key);
+  boolean IsExpectReply(in nsMsgKey key);
 
   void MarkAllRead(out unsigned long aCount,
                    [array, size_is(aCount)] out nsMsgKey aKeys);

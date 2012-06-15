@@ -68,9 +68,7 @@ interface nsIMsgDBHdr : nsISupports
     void markRead(in boolean read);
     void markFlagged(in boolean flagged);
     void markHasAttachments(in boolean hasAttachments);
-    /* If expectReply is true, a date string must be provided. 
-       If expectReply is false, any arbitrary string can do, e.g. an empty string.*/
-	void markExpectReply(in boolean expectReply, in string expectReplyDate);
+	void markExpectReply(in boolean expectReply);
     
     attribute nsMsgPriorityValue priority;
     void setPriorityString(in string priority);

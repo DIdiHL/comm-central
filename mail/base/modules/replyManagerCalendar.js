@@ -25,8 +25,7 @@ var replyManagerCalendar = {
     this.calendarManager = Cc["@mozilla.org/calendar/manager;1"]
                             .getService(Components.interfaces.calICalendarManager);
     Cu.import("resource://calendar/modules/calUtils.jsm");
-    if (this.calendarManager == null) 
-      throw new Error("Error: Lightning not found!");
+    if (this.calendarManager == null) throw "Error: Lightning not found!";
     let calendars = this.calendarManager.getCalendars({});
     let calFound = false;
     /* Filter the calendars so that it only contains replyManagerCalendar

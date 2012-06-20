@@ -13,15 +13,17 @@ const gPrefBranch = Cc["@mozilla.org/preferences-service;1"]
 Cu.import("resource://app/modules/gloda/public.js");
 Cu.import("resource://app/modules/replyManagerCalendar.js");
 Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource://gre/modules/Services.jsm");
 
 var replyManagerUtils = {
   /** Get the list of email addresses who have not replied to the message
    * @param aGlodaMsg
-   * @param callback function: receiving three arguments - aCollection, 
+   * @param callback function: receiving four arguments - subject, aCollection, 
                                recipients aray and reply status flags array.
    */
   getNotRepliedForGlodaMsg: function replyManagerUtils_getNotRepliedForGlodaMsg(aGlodaMsg, callback) 
   {
+    let subject = aGlodaMsg._subject;
     aGlodaMsg.conversation.getMessagesCollection({
       onItemsAdded: function() {},
       onItemsModified: function() {},
@@ -51,7 +53,7 @@ var replyManagerUtils = {
             }
           }
         }
-        callback(aCollection, recipients, didReply)
+        callback(subject, aCollection, recipients, didReply)
       }
     });
   },
@@ -134,5 +136,29 @@ var replyManagerUtils = {
 
   removeHdrFromCalendar: function replyManagerUtils_removeHdrFromCalendar(aMsgHdr) {
     replyManagerCalendar.removeEvent(aMsgHdr.id);
+  },
+
+  startReminderComposeForHdr: function replyManagerUtils_startReminderCompose(aMsgHdr) {
+    replyManagerUtils.getNotRepliedForHdr(aMsgHdr, replyManagerUtils.openComposeWindow);
+  },
+
+  openComposeWindow: function replyManagerUtils_openComposeWindow(subject, aCollection, recipientsList, didReply) {
+    let recipients = "";
+    let delimiter = "";
+    for (let i = 0; i < recipientsList.length; ++i)
+    {
+      if (!didReply[i])
+      {
+        recipients += delimiter + recipientsList[i];
+        delimiter = "; ";
+      }
+    }
+    /* Create the compose window with a mailto url and the recipients and subject will
+     * be automatically filled in. */
+    let mailtoURL = "mailto:" + recipients + "?subject=" + subject;
+    let msgComposeService = Cc["@mozilla.org/messengercompose;1"]
+                             .getService(Components.interfaces.nsIMsgComposeService);
+    let aURI = Services.io.newURI(mailtoURL, null, null);
+    msgComposeService.OpenComposeWindowWithURI(null, aURI);
   }
 };

@@ -11,6 +11,14 @@
 
 <script type="application/javascript" src="chrome://messenger/content/replyManagerMsgHdrViewOverlay.js"/>
 
+<!--TODO implemenet the stub functions -->
+<commandset>
+  <command id="cmd_setExpectReply" oncommand="alert('This is a stub');"/>
+  <command id="cmd_modifyExpectReply" oncommand="alert('This is a stub');"/>
+  <command id="cmd_removeExpectReply" oncommand="alert('This is a stub');"/>
+  <command id="cmd_startComposeReminder" oncommand="startComposeReminder();"/>
+</commandset>
+
 <vbox id="otherActionsBox">
   <hbox id="ExpectReplyDateHbox" position="2"> 
     <label id="BeforeExpectReplyDateLabel" value="&BeforeExpectReplyDateLabel.value;" flex="1" role="textbox"
@@ -19,4 +27,16 @@
 	       aria-readonly="true"/>
   </hbox>
 </vbox>
+
+<menupopup id="otherActionsPopup">
+  <menuitem id="hdrViewSetExpectReplyItem" label="&replyManagerSetExpectReplyItem.label;"
+            command="cmd_setExpectReply" position="6"/>
+  <menuitem id="hdrViewModifyExpectReplyItem" label="&replyManagerModifyExpectReplyItem.label;"
+            command="cmd_modifyExpectReply" position="7"/>
+  <menuitem id="hdrViewRemoveExpectReplyItem" label="&replyManagerRemoveExpectReplyItem.label;"
+            command="cmd_removeExpectReply" position="8"/>
+  <menuitem id="composeReminderItem" label="&replyManagerComposeReminderItem.label;"
+            command="cmd_startComposeReminder" position="9"/>
+  <menuseparator position="10"/>
+</menupopup>
 </overlay>

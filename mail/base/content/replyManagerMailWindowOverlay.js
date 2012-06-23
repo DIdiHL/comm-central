@@ -53,6 +53,27 @@ function toggleCreateCalendarEvent()
   gPrefBranch.setBoolPref("mail.replymanager.create_calendar_event_enabled", !prefValue);
 }
 
+function startComposeReminder() {
+  let msgHdr = gFolderDisplay.selectedMessage;
+  replyManagerUtils.startReminderComposeForHdr(msgHdr);
+}
+
+function deployMenuitems() {
+  let msgHdr = gFolderDisplay.selectedMessage;
+  let setItem = document.getElementById("setExpectReplyItem");
+  let modifyItem = document.getElementById("modifyExpectReplyItem");
+  let removeItem = document.getElementById("removeExpectReplyItem");
+  if (msgHdr.isExpectReply) {
+    setItem.collapsed = true;
+    modifyItem.collapsed = false;
+    removeItem.collapsed = false;
+  } else {
+    setItem.collapsed = false;
+    modifyItem.collapsed = true;
+    removeItem.collapsed = true;
+  }
+  return true;
+}
 var prefObserver = {
   prefs: null,
 

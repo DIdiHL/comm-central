@@ -143,16 +143,7 @@ var replyManagerUtils = {
   },
 
   openComposeWindow: function replyManagerUtils_openComposeWindow(subject, aCollection, recipientsList, didReply) {
-    let recipients = "";
-    let delimiter = "";
-    for (let i = 0; i < recipientsList.length; ++i)
-    {
-      if (!didReply[i])
-      {
-        recipients += delimiter + recipientsList[i];
-        delimiter = "; ";
-      }
-    }
+    let recipients = [recipient for each ([i, recipient] in Iterator(recipientsList)) if (!didReply[i])].join(",");
     /* Create the compose window with a mailto url and the recipients and subject will
      * be automatically filled in. */
     let mailtoURL = "mailto:" + recipients + "?subject=" + subject;

@@ -1,40 +1,7 @@
 /* -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is mozilla.org code.
- *
- * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Joachim Herb <herb@leo.org>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #filter substitution
 
@@ -100,7 +67,7 @@ pref("app.update.url", "https://aus3.mozilla.org/update/3/%PRODUCT%/%VERSION%/%B
 pref("app.update.url.manual", "http://www.getthunderbird.com");
 // A default value for the "More information about this update" link
 // supplied in the "An update is available" page of the update wizard. 
-pref("app.update.url.details", "http://www.mozillamessaging.com/%LOCALE%/%APP%/releases/");
+pref("app.update.url.details", "http://www.mozilla.org/%LOCALE%/%APP%/releases/");
 // User-settable override to app.update.url for testing purposes.
 //pref("app.update.url.override", "");
 
@@ -116,6 +83,11 @@ pref("app.update.idletime", 60);
 // a whatsNewURL field in their brand.properties that contains a link to a page
 // which tells users what's new in this new update.
 pref("app.update.showInstalledUI", false);
+
+// Whether or not to attempt using the service for updates.
+#ifdef MOZ_MAINTENANCE_SERVICE
+pref("app.update.service.enabled", true);
+#endif
 
 // Release notes URL
 pref("app.releaseNotesURL", "http://live.mozillamessaging.com/%APP%/releasenotes?locale=%LOCALE%&version=%VERSION%&os=%OS%&buildid=%APPBUILDID%");
@@ -183,6 +155,13 @@ pref("lightweightThemes.update.enabled", true);
 
 pref("xpinstall.whitelist.add", "addons.mozilla.org");
 pref("xpinstall.whitelist.add.36", "getpersonas.com");
+
+pref("general.smoothScroll", true);
+#ifdef UNIX_BUT_NOT_MAC
+pref("general.autoScroll", false);
+#else
+pref("general.autoScroll", true);
+#endif
 
 pref("mail.shell.checkDefaultClient", true);
 pref("mail.spellcheck.inline", true);
@@ -423,7 +402,7 @@ pref("mail.tabs.loadInBackground", true);
 
 // Tabs
 pref("mail.tabs.tabMinWidth", 100);
-pref("mail.tabs.tabMaxWidth", 250);
+pref("mail.tabs.tabMaxWidth", 210);
 pref("mail.tabs.tabClipWidth", 140);
 pref("mail.tabs.autoHide", false);
 pref("mail.tabs.closeWindowWithLastTab", true);
@@ -492,7 +471,7 @@ pref("mail.compose.big_attachments.insert_notification", true);
 // has opted out, or an enterprise wants to disable it from the git go.
 pref("mail.instrumentation.askUser", true);
 pref("mail.instrumentation.userOptedIn", false);
-pref("mail.instrumentation.postUrl", "https://www.mozillamessaging.com/instrumentation");
+pref("mail.instrumentation.postUrl", "https://www.mozilla.org/instrumentation");
 // not sure how this will be formatted - would be nice to make it extensible.
 pref("mail.instrumentation.lastNotificationSent", "");
 
@@ -781,7 +760,7 @@ pref("purple.conversations.im.send_typing", true);
 // BigFiles
 pref("mail.cloud_files.enabled", true);
 pref("mail.cloud_files.inserted_urls.footer.link", "http://www.getthunderbird.com");
-pref("mail.cloud_files.learn_more_url", "http://support.mozillamessaging.com/kb/file-link");
+pref("mail.cloud_files.learn_more_url", "https://support.mozillamessaging.com/kb/filelink-large-attachments");
 
 //Reply Manager
-pref("replymanager.create_calendar_event_enabled", false);
+pref("mail.replymanager.create_calendar_event_enabled", false);

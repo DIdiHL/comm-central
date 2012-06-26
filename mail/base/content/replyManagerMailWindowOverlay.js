@@ -60,20 +60,56 @@ function startComposeReminder() {
 
 function deployMenuitems() {
   let msgHdr = gFolderDisplay.selectedMessage;
-  let setItem = document.getElementById("setExpectReplyItem");
-  let modifyItem = document.getElementById("modifyExpectReplyItem");
-  let removeItem = document.getElementById("removeExpectReplyItem");
+  let expectReplyCheckbox = document.getElementById("expectReplyCheckbox");
+  /* Somehow disabling the menuitem directly doesn't work so I disable the
+   * associated command instead. */
+  let modifyCommand = document.getElementById("cmd_modifyExpectReply");
   if (msgHdr.isExpectReply) {
-    setItem.collapsed = true;
-    modifyItem.collapsed = false;
-    removeItem.collapsed = false;
+    expectReplyCheckbox.setAttribute("checked", "true");
+    modifyCommand.setAttribute("disabled", "false");
   } else {
-    setItem.collapsed = false;
-    modifyItem.collapsed = true;
-    removeItem.collapsed = true;
+    expectReplyCheckbox.setAttribute("checked", "false");
+    modifyCommand.setAttribute("disabled", "true");
   }
   return true;
 }
+
+function toggleExpectReplyCheckbox() {
+  let checkbox = document.getElementById("expectReplyCheckbox");
+  let menuitem = document.getElementById("modifyExpectReplyItem");
+  let msgHdr = gFolderDisplay.selectedMessage;
+  if (checkbox.getAttribute("checked") == "true") {
+    replyManagerUtils.resetExpectReplyForHdr(msgHdr);
+    checkbox.setAttribute("checked", "false");
+    menuitem.setAttribute("disabled", "true");
+  } else if (checkbox.getAttribute("checked") == "false") {
+    let params = {
+      inn: msgHdr,
+      out: null
+    };
+    window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "",
+                      "chrome, dialog, modal", params).focus();
+    if (params.out) {
+      replyManagerUtils.setExpectReplyForHdr(msgHdr, params.out);
+      checkbox.setAttribute("checked", "true");
+      menuitem.setAttribute("disabled", "false");
+    }
+  }
+}
+
+function modifyExpectReply() {
+  let msgHdr = gFolderDisplay.selectedMessage;
+  let params = {
+    inn: msgHdr,
+    out: null
+  }
+  window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "",
+                    "chrome, dialog, modal", params).focus();
+  if (params.out) {
+    replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.out);
+  }
+}
+
 var prefObserver = {
   prefs: null,
 

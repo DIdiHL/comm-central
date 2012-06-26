@@ -98,7 +98,30 @@ var replyManagerUtils = {
     if (gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled"))
       replyManagerUtils.removeHdrFromCalendar(aMsgHdr);
   },
-
+  
+  /**
+   * updateExpectReplyForHdr updates the Expect Reply date and the associated
+   * calendar event if the feature is enabled
+   * @param aMsgHdr
+   * @param aDateStr is an optional parameter that, when specified, will
+   *        change the expect reply date. If not this method will only 
+   *        attempt to modify the calendar event's title.
+   */
+  updateExpectReplyForHdr: function replyManagerUtils_updateExpectReplyForHdr(aMsgHdr, aDateStr) {
+    let callback = function (subject, aCollection, recipientsList, didReply) {
+      let recipients = getNotRepliedRecipients(recipientsList, didReply);
+      let newDate = (aDateStr) ? aDateStr : aMsgHdr.getStringProperty("ExpectReplyDate");
+      let newStatus = "\"" + subject + "\" is expecting replies from "
+                        + recipients + " by " + date;
+      replyManagerCalendar.modifyCalendarEvent(aMsgHdr.messageId, newStatus, newDate);
+    }
+    if (aDateStr) {
+      aMsgHdr.setStringProperty("ExpectReplyDate", aDateStr);
+    }
+    if (gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled"))
+      replyManagerUtils.getNotRepliedForHdr(aMsgHdr, callback);
+  },
+  
   //Add this expect reply entry to calendar
   addHdrToCalendar: function replyManagerUtils_addHdrToCalendar(aMsgHdr) {
     if (!aMsgHdr.isExpectReply) 
@@ -128,8 +151,8 @@ var replyManagerUtils = {
     let finalRecipients = Object.getOwnPropertyNames(recipients);
 
     let dateStr = aMsgHdr.getStringProperty("ExpectReplyDate");
-    var date = new Date(dateStr);
-    var status = "\"" + aMsgHdr.subject + "\" is expecting replies from " 
+    let date = new Date(dateStr);
+    let status = "\"" + aMsgHdr.subject + "\" is expecting replies from " 
                       + finalRecipients + " by " + dateStr;
     replyManagerCalendar.addEvent(date, aMsgHdr.messageId, status);
   },
@@ -143,7 +166,7 @@ var replyManagerUtils = {
   },
 
   openComposeWindow: function replyManagerUtils_openComposeWindow(subject, aCollection, recipientsList, didReply) {
-    let recipients = [recipient for each ([i, recipient] in Iterator(recipientsList)) if (!didReply[i])].join(",");
+    let recipients = getNotRepliedRecipients(recipientsList, didReply);
     /* Create the compose window with a mailto url and the recipients and subject will
      * be automatically filled in. */
     let mailtoURL = "mailto:" + recipients + "?subject=" + subject;
@@ -153,3 +176,8 @@ var replyManagerUtils = {
     msgComposeService.OpenComposeWindowWithURI(null, aURI);
   }
 };
+
+function getNotRepliedRecipients(recipientList, didReply) {
+  let recipients = [recipient for each ([i, recipient] in Iterator(recipientsList)) if (!didReply[i])].join(",");
+  return recipients;
+}

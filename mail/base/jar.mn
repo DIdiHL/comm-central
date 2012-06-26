@@ -88,6 +88,7 @@ messenger.jar:
     content/messenger/replyManagerMsgHdrViewOverlay.js (content/replyManagerMsgHdrViewOverlay.js)
     content/messenger/replyManagerMailWindowOverlay.xul (content/replyManagerMailWindowOverlay.xul)
     content/messenger/replyManagerMailWindowOverlay.js (content/replyManagerMailWindowOverlay.js)
+    content/messenger/replyManagerDateDialog.xul    (content/replyManagerDateDialog.xul)
 #ifdef XP_MACOSX
     content/messenger/macMenuOverlay.xul            (content/macMenuOverlay.xul)
 #endif

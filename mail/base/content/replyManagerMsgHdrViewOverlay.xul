@@ -13,10 +13,9 @@
 
 <!--TODO implemenet the stub functions -->
 <commandset>
-  <command id="cmd_setExpectReply" oncommand="alert('This is a stub');"/>
-  <command id="cmd_modifyExpectReply" oncommand="alert('This is a stub');"/>
-  <command id="cmd_removeExpectReply" oncommand="alert('This is a stub');"/>
-  <command id="cmd_startComposeReminder" oncommand="startComposeReminder();"/>
+  <command id="cmd_hdrViewToggleExpectReply" oncommand="toggleHdrViewExpectReplyCheckbox();"/>
+  <command id="cmd_hdrViewModifyExpectReply" oncommand="hdrViewModifyExpectReply();"/>
+  <command id="cmd_hdrViewStartComposeReminder" oncommand="startComposeReminder();"/>
 </commandset>
 
 <vbox id="otherActionsBox">
@@ -29,14 +28,12 @@
 </vbox>
 
 <menupopup id="otherActionsPopup">
-  <menuitem id="hdrViewSetExpectReplyItem" label="&replyManagerSetExpectReplyItem.label;"
-            command="cmd_setExpectReply" position="6"/>
+  <menuitem id="hdrViewExpectReplyCheckbox" label="&replyManagerExpectReplyCheckbox.label;" type="checkbox"
+            autocheck="false" command="cmd_hdrViewToggleExpectReply" position="6"/>
   <menuitem id="hdrViewModifyExpectReplyItem" label="&replyManagerModifyExpectReplyItem.label;"
-            command="cmd_modifyExpectReply" position="7"/>
-  <menuitem id="hdrViewRemoveExpectReplyItem" label="&replyManagerRemoveExpectReplyItem.label;"
-            command="cmd_removeExpectReply" position="8"/>
-  <menuitem id="composeReminderItem" label="&replyManagerComposeReminderItem.label;"
-            command="cmd_startComposeReminder" position="9"/>
-  <menuseparator position="10"/>
+            command="cmd_hdrViewModifyExpectReply" position="7"/>
+  <menuitem id="hdrViewSendReminderItem" label="&replyManagerSendReminderItem.label;"
+            command="cmd_hdrViewStartComposeReminder" position="8"/>
+  <menuseparator position="9"/>
 </menupopup>
 </overlay>

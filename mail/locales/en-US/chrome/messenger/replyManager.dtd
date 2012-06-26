@@ -6,9 +6,20 @@
 <!ENTITY replyManagerTools.label "Reply Manager">
 <!ENTITY replyManagerSettings.label "Settings">
 <!ENTITY createCalendarEventMenuitem.label "Create Calendar Event">
+<!ENTITY replyManagerComposeReminderItem.label "Compose Reminder">
+<!ENTITY replyManagerMailContextMenu.label "Reply Manager">
+<!ENTITY replyManagerExpectReplyCheckbox.label "Expect Reply">
+<!ENTITY replyManagerModifyExpectReplyItem.label "Change Deadline">
+<!ENTITY replyManagerSendReminderItem.label "Send Reminder">
 
 <!-- replyManagerMsgHdrViewOverlay -->
 <!ENTITY BeforeExpectReplyDateLabel.value "Expecting replies by">
 
 <!-- messengercompose -->
 <!ENTITY other-elements-toggle.label "Expecting replies by ">
+
+<!-- replyManagerDateDialog -->
+<!ENTITY replyManagerDateDialog.title "Reply Manager">
+<!ENTITY replyManagerAcceptButton.label "Save">
+<!ENTITY replyManagerCancelButton.label "Cancel">
+<!ENTITY replyManagerDateDialogHeader.title "Pick a deadline:">

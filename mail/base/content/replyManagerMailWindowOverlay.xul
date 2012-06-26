@@ -14,9 +14,8 @@
 
 <commandset>
   <command id="cmd_toggleCreateCalendarEvent" oncommand="toggleCreateCalendarEvent();"/>
-  <command id="cmd_setExpectReply" oncommand="alert('This is a stub');"/>
-  <command id="cmd_modifyExpectReply" oncommand="alert('This is a stub');"/>
-  <command id="cmd_removeExpectReply" oncommand="alert('This is a stub');"/>
+  <command id="cmd_toggleExpectReply" oncommand="toggleExpectReplyCheckbox();"/>
+  <command id="cmd_modifyExpectReply" oncommand="modifyExpectReply();"/>
   <command id="cmd_startComposeReminder" oncommand="startComposeReminder();"/>
 </commandset>
 
@@ -36,13 +35,11 @@
 <menupopup id="mailContext">
   <menu id="replyManagerMailContextMenu" label="&replyManagerMailContextMenu.label;">
     <menupopup id="replyManagerMailContextMenupopup" onpopupshowing="deployMenuitems();">
-      <menuitem id="setExpectReplyItem" label="&replyManagerSetExpectReplyItem.label;"
-                command="cmd_setExpectReply"/>
+      <menuitem id="expectReplyCheckbox" label="&replyManagerExpectReplyCheckbox.label;"
+                command="cmd_toggleExpectReply"/>
       <menuitem id="modifyExpectReplyItem" label="&replyManagerModifyExpectReplyItem.label;"
                 command="cmd_modifyExpectReply"/>
-      <menuitem id="removeExpectReplyItem" label="&replyManagerRemoveExpectReplyItem.label;"
-                command="cmd_removeExpectReply"/>
-      <menuitem id="composeReminderItem" label="&replyManagerComposeReminderItem.label;"
+      <menuitem id="sendReminderItem" label="&replyManagerSendReminderItem.label;"
                 command="cmd_startComposeReminder"/>
     </menupopup>
   </menu>

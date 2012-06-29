@@ -1,8 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
-Components.utils.import("resource://app/modules/replyManagerUtils.js");
-Components.utils.import("resource://app/modules/replyManagerCalendar.js");
+Components.utils.import("resource:///modules/replyManagerUtils.js");
+Components.utils.import("resource:///modules/replyManagerCalendar.js");
+Components.utils.import("resource:///modules/gloda/public.js");
 
 const createCalendarEventMenuitem = "createCalendarEventMenuitem";
 
@@ -84,13 +85,13 @@ function toggleExpectReplyCheckbox() {
     menuitem.setAttribute("disabled", "true");
   } else if (checkbox.getAttribute("checked") == "false") {
     let params = {
-      inn: msgHdr,
-      out: null
+      inMsgHdr: msgHdr,
+      outDate: null
     };
     window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "",
-                      "chrome, dialog, modal", params).focus();
-    if (params.out) {
-      replyManagerUtils.setExpectReplyForHdr(msgHdr, params.out);
+                      "chrome, dialog, modal", params);
+    if (params.outDate) {
+      replyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
       checkbox.setAttribute("checked", "true");
       menuitem.setAttribute("disabled", "false");
     }
@@ -100,13 +101,13 @@ function toggleExpectReplyCheckbox() {
 function modifyExpectReply() {
   let msgHdr = gFolderDisplay.selectedMessage;
   let params = {
-    inn: msgHdr,
-    out: null
+    inMsgHdr: msgHdr,
+    outDate: null
   }
   window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "",
-                    "chrome, dialog, modal", params).focus();
-  if (params.out) {
-    replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.out);
+                    "chrome, dialog, modal", params);
+  if (params.outDate) {
+    replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.outDate);
   }
 }
 
@@ -147,6 +148,16 @@ var prefObserver = {
   }
 };
 
+/**
+ * Listener for new messages and message delete operation.
+ * Some emails are associated with calendar events so the
+ * the addition and removal of such messages should be
+ * watched for so that the calendar event is up to date.
+ */
+//TODO Implement the listener
+
 window.addEventListener("load", onLoad);
 window.addEventListener("load", function() {prefObserver.onLoad();}, false);
 window.addEventListener("unload", function() {prefObserver.onUnload();}, false);
+
+

@@ -10,10 +10,10 @@ const Cc = Components.classes;
 const gPrefBranch = Cc["@mozilla.org/preferences-service;1"]
                     .getService(Components.interfaces.nsIPrefService)
                     .getBranch(null);
-Cu.import("resource://app/modules/gloda/public.js");
-Cu.import("resource://app/modules/replyManagerCalendar.js");
+Cu.import("resource:///modules/gloda/public.js");
+Cu.import("resource:///modules/replyManagerCalendar.js");
 Cu.import("resource:///modules/mailServices.js");
-Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource:///modules/Services.jsm");
 
 var replyManagerUtils = {
   /** Get the list of email addresses who have not replied to the message
@@ -34,16 +34,16 @@ var replyManagerUtils = {
       
         //We can use the "_value" property of an email's identity 
         //to get the mail address without the name of the owner.
-        for (let i = 0; i != didReply.length; ++i)
+        for (let i = 0; i < didReply.length; ++i)
         {
           didReply[i] = false;
           /* aGlodaMsg.recipients includes the To, Cc and Bcc header
            * fields so this array contains enough information.*/
           recipients[i] = aGlodaMsg.recipients[i]._value;
         }
-        for (let i = 0; i != aCollection.items.length; ++i)
+        for (let i = 0; i < aCollection.items.length; ++i)
         {
-          for (let j = 0; j != recipients.length; ++j)
+          for (let j = 0; j < recipients.length; ++j)
           {
             //since both of them are purely mail address we can directly compare them
             if (recipients[j] == aCollection.items[i].from._value)
@@ -110,9 +110,11 @@ var replyManagerUtils = {
   updateExpectReplyForHdr: function replyManagerUtils_updateExpectReplyForHdr(aMsgHdr, aDateStr) {
     let callback = function (subject, aCollection, recipientsList, didReply) {
       let recipients = getNotRepliedRecipients(recipientsList, didReply);
-      let newDate = (aDateStr) ? aDateStr : aMsgHdr.getStringProperty("ExpectReplyDate");
+      let dateStr = (aDateStr) ? aDateStr : aMsgHdr.getStringProperty("ExpectReplyDate");
+      let newDate = (aDateStr) ? getDateForICalString(aDateStr) :
+                                 null;
       let newStatus = "\"" + subject + "\" is expecting replies from "
-                        + recipients + " by " + date;
+                        + recipients + " by " + dateStr;
       replyManagerCalendar.modifyCalendarEvent(aMsgHdr.messageId, newStatus, newDate);
     }
     if (aDateStr) {
@@ -122,10 +124,11 @@ var replyManagerUtils = {
       replyManagerUtils.getNotRepliedForHdr(aMsgHdr, callback);
   },
   
-  //Add this expect reply entry to calendar
+  /**
+   * Add this expect reply entry to calendar
+   * @param aMsgHdr is the message header associated with this event
+   */
   addHdrToCalendar: function replyManagerUtils_addHdrToCalendar(aMsgHdr) {
-    if (!aMsgHdr.isExpectReply) 
-      throw new Error("Error: this email is not expecting replies!");
     let headerParser = MailServices.headerParser;
     /* We need to merge the three fields and remove duplicates.
      * To make it simpler, we can create an object and make
@@ -150,8 +153,11 @@ var replyManagerUtils = {
     mergeFunction(aMsgHdr.bccList);
     let finalRecipients = Object.getOwnPropertyNames(recipients);
 
+    /* If we initialized using a whole date string, the date will be 1 less
+     * than the real value so we need to separete the values.
+     */
     let dateStr = aMsgHdr.getStringProperty("ExpectReplyDate");
-    let date = new Date(dateStr);
+    let date = getDateForICalString(dateStr);
     let status = "\"" + aMsgHdr.subject + "\" is expecting replies from " 
                       + finalRecipients + " by " + dateStr;
     replyManagerCalendar.addEvent(date, aMsgHdr.messageId, status);
@@ -177,7 +183,15 @@ var replyManagerUtils = {
   }
 };
 
-function getNotRepliedRecipients(recipientList, didReply) {
+function getNotRepliedRecipients(recipientsList, didReply) {
   let recipients = [recipient for each ([i, recipient] in Iterator(recipientsList)) if (!didReply[i])].join(",");
   return recipients;
+}
+
+//Remove the '-' in the date string to get a date string used by iCalString
+function getDateForICalString(aDateStr) {
+  let year = aDateStr.substr(0, 4);
+  let month = aDateStr.substr(5, 2);
+  let date = aDateStr.substr(8, 2);
+  return year + month + date;
 }

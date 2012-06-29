@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
-Components.utils.import("resource://app/modules/replyManagerUtils.js");
+Components.utils.import("resource:///modules/replyManagerUtils.js");
 gMessageListeners.push({
   onStartHeaders: function () {},
   onEndHeaders: function () {},
@@ -39,13 +39,13 @@ function toggleHdrViewExpectReplyCheckbox() {
     menuitem.setAttribute("disabled", "true");
   } else if (checkbox.getAttribute("checked") == "false") {
     let params = {
-      inn: msgHdr,
-      out: null
+      inMsgHdr: msgHdr,
+      outDate: null
     };
     window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "",
-                      "chrome, dialog, modal", params).focus();
-    if (params.out) {
-      replyManagerUtils.setExpectReplyForHdr(msgHdr, params.out);
+                      "chrome, dialog, modal", params);
+    if (params.outDate) {
+      replyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
       checkbox.setAttribute("checked", "true");
       menuitem.setAttribute("disabled", "false");
     }
@@ -55,12 +55,12 @@ function toggleHdrViewExpectReplyCheckbox() {
 function hdrViewModifyExpectReply() {
   let msgHdr = gFolderDisplay.selectedMessage;
   let params = {
-    inn: msgHdr,
-    out: null
-  }
+    inMsgHdr: msgHdr,
+    outDate: null
+  };
   window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "",
-                    "chrome, dialog, modal", params).focus();
-  if (params.out) {
-    replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.out);
+                    "chrome, dialog, modal", params);
+  if (params.outDate) {
+    replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.outDate);
   }
 }

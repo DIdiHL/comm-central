@@ -19,7 +19,7 @@ ondialogcancel="return doCancel();">
  * the value of the expect reply date for convenience.
  */
 function onLoad() {
-  let header = window.arguments[0].inn;
+  let header = window.arguments[0].inMsgHdr;
   if (header.isExpectReply) {
     let datepicker = document.getElementById("replyManagerDatePicker");
     datepicker.value = header.getStringProperty("ExpectReplyDate");
@@ -29,12 +29,11 @@ function onLoad() {
 function doOK() {
   let params = window.arguments[0];
   let datestr = document.getElementById("replyManagerDatePicker").value;
-  params.out = datestr;
+  params.outDate = datestr;
   return true;
 }
 
 function doCancel() {
-  let params = window.arguments[0];
   return true;
 }
 </script>

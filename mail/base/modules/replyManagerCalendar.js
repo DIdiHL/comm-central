@@ -48,34 +48,6 @@ var replyManagerCalendar = {
     }
   },
 
-  /**
-   * dateToStr
-   * @param date is a javascript date object
-   * converts the javascript date type to a string
-   * used for creating calendar events.*/
-  dateToStr : function(date)
-  {
-    //get the year.
-    let year = date.getFullYear();
-    //get the month.
-    let month = date.getMonth()+1;
-    month += "";
-    if (month.length == 1)
-    {
-      month = "0"+month;
-    }
-    //get the date.
-    let day = date.getDate();
-    day += "";
-    if (day.length == 1) 
-    {
-      day = "0"+day;
-    }
-    //combine into a string.
-    let dateStr = year + "" + month + "" + day;
-    return dateStr;
-  },
-
   retrieveItem: function(id,calendar)
   {
     let listener = new replyManagerCalendar.calOpListener();    
@@ -89,11 +61,8 @@ var replyManagerCalendar = {
    * @param id is the messageId field of the message header
    * @param status is a string that will be the title of the event
    */
-  addEvent : function(date, id, status)
-  {
-    let dateStr = this.dateToStr(date);
-		    
-    // Strategy is to create iCalString and create Event from that string
+  addEvent : function(dateStr, id, status)
+  {		    
     let iCalString = generateICalString(dateStr);
 
     // create event Object out of iCalString
@@ -108,6 +77,7 @@ var replyManagerCalendar = {
     //alert(this.calendar);//for debugging
     // add Item to Calendar
     this.calendar.addItem(event, null);
+    dateStr;
   },
 
   /**
@@ -119,12 +89,14 @@ var replyManagerCalendar = {
    * @param aDateStr(optional) if specified will change the date
    *        of the event.
    */
-  modifyCalendarEvent : function(id, status, aDateStr)
+  modifyCalendarEvent : function(id, status, dateStr)
   {
     let oldEvent = this.retrieveItem(id, this.calendar);
-    let iCalString = (aDateStr)? generateICalString(aDateStr) :
+    let iCalString = (dateStr) ? generateICalString(dateStr) :
                                  oldEvent.icalString;
+
     let newEvent = cal.createEvent(iCalString);
+    newEvent.id = id;
     newEvent.calendar = this.calendar;
     newEvent.title = status + ": 1 Email";
     this.calendar.modifyItem(newEvent, oldEvent, null);
@@ -165,25 +137,20 @@ replyManagerCalendar.calOpListener.prototype = {
   },
 }
 
-/**
- * generateICalString generates the iCalString used for 
- * initializing a iCalItemBase object.
- * @param aDateStr is the date of the event.
- */
 function generateICalString(aDateStr) {
   // Strategy is to create iCalString and create Event from that string
   let iCalString = "BEGIN:VCALENDAR\n";
   iCalString += "BEGIN:VEVENT\n";
 		    
   // generate Date as Ical compatible text string
-  iCalString += "DTSTART;VALUE=DATE:" + dateStr + "\n";	    
+  iCalString += "DTSTART;VALUE=DATE:" + aDateStr + "\n";	    
 		               	   
   // set Duration
   iCalString += "DURATION=PT1D\n";
 				   
   // set Alarm
   iCalString += "BEGIN:VALARM\nACTION:DISPLAY\nTRIGGER:-PT" + "1" + "M\nEND:VALARM\n";
-	    
+		    
   // finalize iCalString
   iCalString += "END:VEVENT\n";
   iCalString += "END:VCALENDAR\n";

@@ -74,10 +74,8 @@ var replyManagerCalendar = {
 				
     // set ID
     event.id=id;
-    //alert(this.calendar);//for debugging
     // add Item to Calendar
     this.calendar.addItem(event, null);
-    dateStr;
   },
 
   /**

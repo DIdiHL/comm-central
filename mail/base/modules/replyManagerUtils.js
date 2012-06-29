@@ -113,8 +113,12 @@ var replyManagerUtils = {
       let dateStr = (aDateStr) ? aDateStr : aMsgHdr.getStringProperty("ExpectReplyDate");
       let newDate = (aDateStr) ? getDateForICalString(aDateStr) :
                                  null;
-      let newStatus = "\"" + subject + "\" is expecting replies from "
-                        + recipients + " by " + dateStr;
+      /* When all people have replied to our email, the recipients will be an empty string.
+       * In that case we need to give the event a more meaningful title.*/
+      let newStatus = (recipients == "") ? 
+                      "\"" + subject + "\" : All recipients have replied to this email" :
+                      "\"" + subject + "\" is expecting replies from "
+                      + recipients + " by " + dateStr;
       replyManagerCalendar.modifyCalendarEvent(aMsgHdr.messageId, newStatus, newDate);
     }
     if (aDateStr) {
@@ -164,7 +168,7 @@ var replyManagerUtils = {
   },
 
   removeHdrFromCalendar: function replyManagerUtils_removeHdrFromCalendar(aMsgHdr) {
-    replyManagerCalendar.removeEvent(aMsgHdr.id);
+    replyManagerCalendar.removeEvent(aMsgHdr.messageId);
   },
 
   startReminderComposeForHdr: function replyManagerUtils_startReminderCompose(aMsgHdr) {

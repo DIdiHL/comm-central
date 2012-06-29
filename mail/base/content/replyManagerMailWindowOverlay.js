@@ -36,6 +36,7 @@ function onLoad()
      * a boolean property called checked and make the literal meaning of the checked
      * attribute match the boolean property.*/
     menuitem.setAttribute("checked", menuitemToggle);
+    replyManagerMailListener.init();
   } 
   catch (err) 
   {
@@ -154,8 +155,54 @@ var prefObserver = {
  * the addition and removal of such messages should be
  * watched for so that the calendar event is up to date.
  */
-//TODO Implement the listener
-
+//TODO implement the messagesDeleted listener
+var replyManagerMailListener = {
+  // This is used for receiving the "itemAdded" event notification.
+  collections: {},
+  
+  init: function() {
+    let notificationService =  
+    Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
+    .getService(Components.interfaces.nsIMsgFolderNotificationService);  
+    notificationService.addListener(this, notificationService.msgAdded);
+  },
+  
+  checkNewMessage: function(aGlodaMsg) {
+    aGlodaMsg.conversation.getMessagesCollection({
+      onItemsAdded: function() {},
+      onItemsModified: function() {},
+      onItemsRemoved: function() {},
+      onQueryCompleted: function(aCollection) {
+        for each ([i, msg] in Iterator(aCollection.items)) {
+          if (msg.folderMessage.isExpectReply) {
+            // Update the calendar event
+            replyManagerUtils.updateExpectReplyForHdr(msg.folderMessage);
+          }
+        }
+        /* We no longer need to watch for this Gloda message so
+         * remove the collection for this message from the container.*/
+        delete replyManagerMailListener.collections[aGlodaMsg._headerMessageID];
+      }
+    });
+  },
+  
+  msgAdded: function (aMsgHdr) {
+    /* When the message is just added to the DB, the Gloda message is
+     * not immediately available so we need to listen for the "itemAdded"
+     * event when the message gets indexed.*/
+    replyManagerMailListener.collections[aMsgHdr.messageId] =
+    Gloda.getMessageCollectionForHeader(aMsgHdr, {
+      onItemsAdded: function(aItems, aCollection) {
+        if (aItems.length > 0) {
+          replyManagerMailListener.checkNewMessage(aItems[0]);
+        }
+      },
+      onItemsModified: function() {},
+      onItemsRemoved: function() {},
+      onQueryCompleted: function() {}
+    });
+  }
+};
 window.addEventListener("load", onLoad);
 window.addEventListener("load", function() {prefObserver.onLoad();}, false);
 window.addEventListener("unload", function() {prefObserver.onUnload();}, false);

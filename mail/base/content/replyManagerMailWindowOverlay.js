@@ -4,6 +4,7 @@
 Components.utils.import("resource:///modules/replyManagerUtils.js");
 Components.utils.import("resource:///modules/replyManagerCalendar.js");
 Components.utils.import("resource:///modules/gloda/public.js");
+Components.utils.import("resource:///modules/mailServices.js");
 
 const createCalendarEventMenuitem = "createCalendarEventMenuitem";
 
@@ -161,10 +162,8 @@ var replyManagerMailListener = {
   collections: {},
   
   init: function() {
-    let notificationService =  
-    Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
-    .getService(Components.interfaces.nsIMsgFolderNotificationService);  
-    notificationService.addListener(this, notificationService.msgAdded);
+    MailServices.mfn.addListener(this, MailServices.mfn.msgAdded |
+                                       MailServices.mfn.msgsDeleted);
   },
   
   checkNewMessage: function(aGlodaMsg) {
@@ -173,7 +172,7 @@ var replyManagerMailListener = {
       onItemsModified: function() {},
       onItemsRemoved: function() {},
       onQueryCompleted: function(aCollection) {
-        for each ([i, msg] in Iterator(aCollection.items)) {
+        for each (let [i, msg] in Iterator(aCollection.items)) {
           if (msg.folderMessage.isExpectReply) {
             // Update the calendar event
             replyManagerUtils.updateExpectReplyForHdr(msg.folderMessage);
@@ -201,6 +200,16 @@ var replyManagerMailListener = {
       onItemsRemoved: function() {},
       onQueryCompleted: function() {}
     });
+  },
+  
+  msgsDeleted: function(aItems) {
+    let mailEnumerator = aItems.enumerate();
+    while (mailEnumerator.hasMoreElements()) {
+      let msg = mailEnumerator.getNext();
+      if (msg.isExpectReply) {
+        replyManagerUtils.resetExpectReplyForHdr(msg);
+      }
+    }
   }
 };
 window.addEventListener("load", onLoad);

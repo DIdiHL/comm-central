@@ -95,8 +95,9 @@ var replyManagerUtils = {
   resetExpectReplyForHdr: function replyManagerUtils_resetExpectReplyForHdr(aMsgHdr) 
   {
     aMsgHdr.markExpectReply(false, "");
-    if (gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled"))
-      replyManagerUtils.removeHdrFromCalendar(aMsgHdr);
+    /* We should attempt to remove the event regardless of the preference because an event might be created
+     * before the preference was set to false. */
+    replyManagerUtils.removeHdrFromCalendar(aMsgHdr);
   },
   
   /**

@@ -62,7 +62,15 @@ var replyManagerCalendar = {
    * @param status is a string that will be the title of the event
    */
   addEvent : function(dateStr, id, status)
-  {		    
+  {
+    /* First we need to test of an event with the same
+     * id exists. If so what we need is modification instead
+     * of addition. */
+    if (this.retrieveItem(id, this.calendar)) {
+      this.modifyCalendarEvent(id, status, dateStr);
+      return;
+    }
+    
     let iCalString = generateICalString(dateStr);
 
     // create event Object out of iCalString
@@ -89,6 +97,13 @@ var replyManagerCalendar = {
    */
   modifyCalendarEvent : function(id, status, dateStr)
   {
+    /* First we need to test if such event exists, if not we need
+     * to create a new event. */
+    if (!this.retrieveItem(id, this.calendar)) {
+      //No such event, create one
+      this.addEvent(dateStr, id, status);
+      return;
+    }
     let oldEvent = this.retrieveItem(id, this.calendar);
     let iCalString = (dateStr) ? generateICalString(dateStr) :
                                  oldEvent.icalString;

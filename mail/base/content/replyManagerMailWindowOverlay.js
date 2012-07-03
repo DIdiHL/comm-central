@@ -49,6 +49,11 @@ function onLoad()
   }
 }
 
+/*
+ * toggleCreateCalendarEvent this function will toggle the boolean preference
+ * that controls whether a calendar event is created when we mark a message
+ * expect reply
+ */
 function toggleCreateCalendarEvent() 
 {
   let menuitem = document.getElementById(createCalendarEventMenuitem);
@@ -56,11 +61,15 @@ function toggleCreateCalendarEvent()
   gPrefBranch.setBoolPref("mail.replymanager.create_calendar_event_enabled", !prefValue);
 }
 
+/* startComposeReminder opens the message compose window with some fields filled
+ * with some boilerplates.*/
 function startComposeReminder() {
   let msgHdr = gFolderDisplay.selectedMessage;
   replyManagerUtils.startReminderComposeForHdr(msgHdr);
 }
 
+/* deployMenuitems sets the state of some menuitems in the reply manager popup
+ * before the popup shows. */
 function deployMenuitems() {
   let msgHdr = gFolderDisplay.selectedMessage;
   let expectReplyCheckbox = document.getElementById("expectReplyCheckbox");
@@ -77,14 +86,21 @@ function deployMenuitems() {
   return true;
 }
 
+/* toggleExpectReplyCheck box is invoked when the user click the
+ * "Expect Reply" checkbox in the menupopup. It will toggle the
+ * ExpectReply state of the selected message. */
 function toggleExpectReplyCheckbox() {
   let checkbox = document.getElementById("expectReplyCheckbox");
   let menuitem = document.getElementById("modifyExpectReplyItem");
   let msgHdr = gFolderDisplay.selectedMessage;
+  /* Since we are going to change the property of the email, we
+   * need to reflect this change to the header view pane. Thus
+   * hdrViewDeployItems is called in order to make this change.*/
   if (checkbox.getAttribute("checked") == "true") {
     replyManagerUtils.resetExpectReplyForHdr(msgHdr);
     checkbox.setAttribute("checked", "false");
     menuitem.setAttribute("disabled", "true");
+    hdrViewDeployItems(msgHdr);
   } else if (checkbox.getAttribute("checked") == "false") {
     let params = {
       inMsgHdr: msgHdr,
@@ -96,10 +112,12 @@ function toggleExpectReplyCheckbox() {
       replyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
       checkbox.setAttribute("checked", "true");
       menuitem.setAttribute("disabled", "false");
+      hdrViewDeployItems(msgHdr);
     }
   }
 }
 
+/* modifyExpectReply is called when the user clicks the "Change Deadline" menuitem*/
 function modifyExpectReply() {
   let msgHdr = gFolderDisplay.selectedMessage;
   let params = {
@@ -110,6 +128,7 @@ function modifyExpectReply() {
                     "chrome, dialog, modal", params);
   if (params.outDate) {
     replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.outDate);
+    document.getElementById("ExpectReplyDateLabel").textContent = params.outDate;
   }
 }
 

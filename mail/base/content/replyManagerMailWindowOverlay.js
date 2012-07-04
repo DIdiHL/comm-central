@@ -112,6 +112,7 @@ function toggleExpectReplyCheckbox() {
       replyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
       checkbox.setAttribute("checked", "true");
       menuitem.setAttribute("disabled", "false");
+      //update the hdr view pane
       hdrViewDeployItems(msgHdr);
     }
   }
@@ -128,7 +129,8 @@ function modifyExpectReply() {
                     "chrome, dialog, modal", params);
   if (params.outDate) {
     replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.outDate);
-    document.getElementById("ExpectReplyDateLabel").textContent = params.outDate;
+    //update the hdr view pane
+    hdrViewDeployItems(msgHdr);
   }
 }
 

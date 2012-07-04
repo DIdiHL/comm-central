@@ -51,7 +51,7 @@ function hdrViewModifyExpectReply() {
   if (params.outDate) {
     replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.outDate);
     //update the header view pane
-    document.getElementById("ExpectReplyDateLabel").textContent = params.outDate;
+    hdrViewDeployItems(msgHdr);
   }
 }
 
@@ -61,21 +61,54 @@ function hdrViewModifyExpectReply() {
  * @param aMsgHdr is the currently selected message header.
  */
 function hdrViewDeployItems(aMsgHdr) {
+  let hdrViewIcon = document.getElementById("replyManagerHdrViewIcon");
   let beforeExpectReplyDateLabel = document.getElementById("BeforeExpectReplyDateLabel");
   let expectReplyDateLabel = document.getElementById("ExpectReplyDateLabel");
   expectReplyDateLabel.textContent = "";
   let expectReplyCheckbox = document.getElementById("hdrViewExpectReplyCheckbox");
   let modifyCommand = document.getElementById("cmd_hdrViewModifyExpectReply");
+  
   if (aMsgHdr.isExpectReply) {
     expectReplyCheckbox.setAttribute("checked", "true");
     modifyCommand.setAttribute("disabled", "false");
     beforeExpectReplyDateLabel.collapsed = false;
     expectReplyDateLabel.textContent += aMsgHdr.getStringProperty("ExpectReplyDate");
     expectReplyDateLabel.collapsed = false;
+    hdrViewIcon.collapsed = false;
+    /* Choose the image of the hdrViewIcon according to the deadline and whether 
+     * all recipients have replied to the selected message. */
+    if (isPastDeadline(aMsgHdr.getStringProperty("ExpectReplyDate"))) {
+      //At this moment I pick this image to show that we have passed the deadline
+      hdrViewIcon.image = "chrome://messenger/skin/icons/exclude-selected.png";
+    } else {
+      let chooseImage = function(subject, aCollection, recipients, didReply) {
+        if (didReply.every(function(flag) {return flag;})) {
+          //all people have replied, show a tick
+          hdrViewIcon.image = "chrome://messenger/skin/icons/tick.png";
+        } else {
+          //some people have not replied show an alert icon
+          hdrViewIcon.image = "chrome://messenger/skin/icons/error.png";
+        }
+      };
+      replyManagerUtils.getNotRepliedForHdr(aMsgHdr, chooseImage);
+    }
   } else {
     expectReplyCheckbox.setAttribute("checked", "false");
     modifyCommand.setAttribute("disabled", "true");
     beforeExpectReplyDateLabel.collapsed = true;
     expectReplyDateLabel.collapsed = true;
+    hdrViewIcon.collapsed = true;
   }
+}
+
+/* isPastDeadline returns true if today's date is past the deadline indicated
+ * by the ExpectReplyDate property of the message header.
+ * @param aDateStr is the deadline */ 
+function isPastDeadline(aDateStr) {
+  let date = new Date();//this will get today's date
+  /* The first 10 characters in the ISO string is in the format of
+   * YYYY-MM-DD which is the same as aDateStr. */
+  let today = date.toISOString().substr(0, 10);
+  //Comparison in lexicographical order will return desirable result.
+  return today > aDateStr;
 }

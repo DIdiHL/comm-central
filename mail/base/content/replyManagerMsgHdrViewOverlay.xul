@@ -11,6 +11,10 @@
 
 <script type="application/javascript" src="chrome://messenger/content/replyManagerMsgHdrViewOverlay.js"/>
 
+<stringbundleset>
+  <stringbundle id="replyManagerTooltipTexts" src="chrome://messenger/locale/replyManager.properties"/>
+</stringbundleset>
+
 <!--TODO implemenet the stub functions -->
 <commandset>
   <command id="cmd_hdrViewToggleExpectReply" oncommand="toggleHdrViewExpectReplyCheckbox();"/>
@@ -24,7 +28,7 @@
   <hbox id="ExpectReplyDateHbox" position="2" align="center">
       <!-- I would like this button to be square so I use toolbarbutton instead of button
            The image will be determined in the hdrViewDeployItems function -->
-      <toolbarbutton id="replyManagerHdrViewIcon" 
+      <toolbarbutton id="replyManagerHdrViewIcon"
               command="cmd_replyManagerShowConversation"
               width="30px" height="30px"/>
     <label id="BeforeExpectReplyDateLabel" value="&BeforeExpectReplyDateLabel.value;" flex="1" role="textbox"

@@ -67,6 +67,7 @@ function hdrViewDeployItems(aMsgHdr) {
   expectReplyDateLabel.textContent = "";
   let expectReplyCheckbox = document.getElementById("hdrViewExpectReplyCheckbox");
   let modifyCommand = document.getElementById("cmd_hdrViewModifyExpectReply");
+  let tooltipTextBundle = document.getElementById("replyManagerTooltipTexts");
   
   if (aMsgHdr.isExpectReply) {
     expectReplyCheckbox.setAttribute("checked", "true");
@@ -75,20 +76,27 @@ function hdrViewDeployItems(aMsgHdr) {
     expectReplyDateLabel.textContent += aMsgHdr.getStringProperty("ExpectReplyDate");
     expectReplyDateLabel.collapsed = false;
     hdrViewIcon.collapsed = false;
-    /* Choose the image of the hdrViewIcon according to the deadline and whether 
+    
+    /* Choose the image and appropriate tooltip text
+     * of the hdrViewIcon according to the deadline and whether 
      * all recipients have replied to the selected message. */
     if (isPastDeadline(aMsgHdr.getStringProperty("ExpectReplyDate"))) {
       //At this moment I pick this image to show that we have passed the deadline
       hdrViewIcon.image = "chrome://messenger/skin/icons/exclude-selected.png";
+      hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginPastDeadline")
+                              + " " + tooltipTextBundle.getString("replyManagerIconTooltipEnd");
     } else {
       let chooseImage = function(subject, aCollection, recipients, didReply) {
         if (didReply.every(function(flag) {return flag;})) {
           //all people have replied, show a tick
           hdrViewIcon.image = "chrome://messenger/skin/icons/tick.png";
+          hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginAllReplied");
         } else {
           //some people have not replied show an alert icon
           hdrViewIcon.image = "chrome://messenger/skin/icons/error.png";
+          hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginNotAllReplied");
         }
+        hdrViewIcon.tooltipText += " " + tooltipTextBundle.getString("replyManagerIconTooltipEnd");
       };
       replyManagerUtils.getNotRepliedForHdr(aMsgHdr, chooseImage);
     }

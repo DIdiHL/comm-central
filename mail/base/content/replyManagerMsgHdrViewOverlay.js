@@ -2,16 +2,22 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 Components.utils.import("resource:///modules/replyManagerUtils.js");
-gMessageListeners.push({
+
+var replyManagerHdrViewListener = {
+  displayedMessage: null,
   onStartHeaders: function () {},
   onEndHeaders: function () {},
   onEndAttachments: function () {},
   onBeforeShowHeaderPane: function () 
   {
     let msgHdr = gFolderDisplay.selectedMessage;
-    hdrViewDeployItems(msgHdr);
+    /* We need to memorize the displayed message so as to update
+     * the hdr view pane with correct data. */
+    replyManagerHdrViewListener.displayedMessage = msgHdr;
+    hdrViewDeployItems();
   }
-});
+};
+gMessageListeners.push(replyManagerHdrViewListener);
 
 /* This function is called when the user clicks the "Expect Reply" checkbox
  * in otherActionsPopup. It will toggle the ExpectReply state of the selected
@@ -22,7 +28,7 @@ function toggleHdrViewExpectReplyCheckbox() {
   //hdrViewDeployItems updates the header view pane to reflect the change
   if (checkbox.getAttribute("checked") == "true") {
     replyManagerUtils.resetExpectReplyForHdr(msgHdr);
-    hdrViewDeployItems(msgHdr);
+    hdrViewDeployItems();
   } else if (checkbox.getAttribute("checked") == "false") {
     let params = {
       inMsgHdr: msgHdr,
@@ -32,7 +38,7 @@ function toggleHdrViewExpectReplyCheckbox() {
                       "chrome, dialog, modal", params);
     if (params.outDate) {
       replyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
-      hdrViewDeployItems(msgHdr);
+      hdrViewDeployItems();
     }
   }
 }
@@ -51,7 +57,7 @@ function hdrViewModifyExpectReply() {
   if (params.outDate) {
     replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.outDate);
     //update the header view pane
-    hdrViewDeployItems(msgHdr);
+    hdrViewDeployItems();
   }
 }
 
@@ -60,7 +66,8 @@ function hdrViewModifyExpectReply() {
  * and the state of some menuitems in the otherActionsPopup
  * @param aMsgHdr is the currently selected message header.
  */
-function hdrViewDeployItems(aMsgHdr) {
+function hdrViewDeployItems() {
+  let aMsgHdr = replyManagerHdrViewListener.displayedMessage;
   let hdrViewIcon = document.getElementById("replyManagerHdrViewIcon");
   let beforeExpectReplyDateLabel = document.getElementById("BeforeExpectReplyDateLabel");
   let expectReplyDateLabel = document.getElementById("ExpectReplyDateLabel");

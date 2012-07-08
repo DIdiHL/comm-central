@@ -200,3 +200,36 @@ function getDateForICalString(aDateStr) {
   let date = aDateStr.substr(8, 2);
   return year + month + date;
 }
+
+/* Gloda attribute provider
+ * the isExpectReply attribute of the message header is contributed to
+ * Gloda so that we can query messages marked isExpectReply. I need to 
+ * get a collection of such messages to display them collectively. */
+var isExpectReply = {
+
+  init: function() {
+    this.defineAttribute();
+  },
+  
+  defineAttribute: function() {
+    this._isExpectReplyAttribute = Gloda.defineAttribute({
+      provider: this,
+      extensionName: "replyManager",
+      attributeType: Gloda.kAttrExplicit,
+      attributeName: "isExpectReply",
+      bind: true,
+      singular: true,
+      facet: true,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_BOOLEAN,
+      parameterNoun: null,
+    });
+  },
+  
+  process: function(aGlodaMessage, aRawReps, aIsNew, aCallbackHandle) {
+    aGlodaMessage.isExpectReply = aRawReps.header.isExpectReply;
+    yield Gloda.kWorkDone;
+  }
+};
+
+isExpectReply.init();

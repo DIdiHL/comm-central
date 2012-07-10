@@ -94,7 +94,10 @@ function hdrViewDeployItems() {
                               + " " + tooltipTextBundle.getString("replyManagerIconTooltipEnd");
     } else {
       let chooseImage = function(subject, aCollection, recipients, didReply) {
-        if (didReply.every(function(flag) {return flag;})) {
+        /* didReply is a boolean array so when all elements in the array are true,
+         * we know that all have replied. Otherwise there are some people who have
+         * not done so. */
+        if (didReply.every(function(flag) flag)) {
           //all people have replied, show a tick
           hdrViewIcon.setAttribute("class", "allReplied");
           hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginAllReplied");
@@ -120,10 +123,8 @@ function hdrViewDeployItems() {
  * by the ExpectReplyDate property of the message header.
  * @param aDateStr is the deadline */ 
 function isPastDeadline(aDateStr) {
-  let date = new Date();//this will get today's date
-  /* The first 10 characters in the ISO string is in the format of
-   * YYYY-MM-DD which is the same as aDateStr. */
-  let today = date.toISOString().substr(0, 10);
-  //Comparison in lexicographical order will return desirable result.
-  return today > aDateStr;
+  let deadline = new Date(aDateStr);
+  //we need to set the time all to 0 in order to only compare the dates
+  let today = new Date().setHours(0,0,0,0);
+  return deadline < today;
 }

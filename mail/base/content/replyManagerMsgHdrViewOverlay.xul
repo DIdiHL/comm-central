@@ -2,6 +2,7 @@
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
      License, v. 2.0. If a copy of the MPL was not distributed with this file,
      You can obtain one at http://mozilla.org/MPL/2.0/.-->
+<?xml-stylesheet href="chrome://messenger/content/replyManager.css" type="text/css"?>
 <!DOCTYPE overlay[
 <!ENTITY % replyManagerDTD SYSTEM "chrome://messenger/locale/replyManager.dtd">
 %replyManagerDTD;
@@ -15,7 +16,6 @@
   <stringbundle id="replyManagerTooltipTexts" src="chrome://messenger/locale/replyManager.properties"/>
 </stringbundleset>
 
-<!--TODO implemenet the stub functions -->
 <commandset>
   <command id="cmd_hdrViewToggleExpectReply" oncommand="toggleHdrViewExpectReplyCheckbox();"/>
   <command id="cmd_hdrViewModifyExpectReply" oncommand="hdrViewModifyExpectReply();"/>
@@ -29,8 +29,7 @@
       <!-- I would like this button to be square so I use toolbarbutton instead of button
            The image will be determined in the hdrViewDeployItems function -->
       <toolbarbutton id="replyManagerHdrViewIcon"
-              command="cmd_replyManagerShowConversation"
-              width="30px" height="30px"/>
+              command="cmd_replyManagerShowConversation"/>
     <label id="BeforeExpectReplyDateLabel" value="&BeforeExpectReplyDateLabel.value;" flex="1" role="textbox"
 	       aria-readonly="true"/>
     <label id="ExpectReplyDateLabel" flex="1" role="textbox"

@@ -89,18 +89,18 @@ function hdrViewDeployItems() {
      * all recipients have replied to the selected message. */
     if (isPastDeadline(aMsgHdr.getStringProperty("ExpectReplyDate"))) {
       //At this moment I pick this image to show that we have passed the deadline
-      hdrViewIcon.image = "chrome://messenger/skin/icons/exclude-selected.png";
+      hdrViewIcon.setAttribute("class", "pastDeadline");
       hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginPastDeadline")
                               + " " + tooltipTextBundle.getString("replyManagerIconTooltipEnd");
     } else {
       let chooseImage = function(subject, aCollection, recipients, didReply) {
         if (didReply.every(function(flag) {return flag;})) {
           //all people have replied, show a tick
-          hdrViewIcon.image = "chrome://messenger/skin/icons/tick.png";
+          hdrViewIcon.setAttribute("class", "allReplied");
           hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginAllReplied");
         } else {
           //some people have not replied show an alert icon
-          hdrViewIcon.image = "chrome://messenger/skin/icons/error.png";
+          hdrViewIcon.setAttribute("class", "notAllReplied");
           hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginNotAllReplied");
         }
         hdrViewIcon.tooltipText += " " + tooltipTextBundle.getString("replyManagerIconTooltipEnd");

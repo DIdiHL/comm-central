@@ -14,6 +14,17 @@
 
 <!-- replyManagerMsgHdrViewOverlay -->
 <!ENTITY BeforeExpectReplyDateLabel.value "Expecting replies by">
+<!ENTITY allRepliedShowRepliesButton.label "Show replies">
+<!ENTITY allRepliedLabel.value "This message has been replied to ">
+<!ENTITY notAllRepliedLabel.value "This message is still expecting replies">
+<!ENTITY pastDeadlineLabel.value "The deadline for replies has past">
+<!ENTITY notAllRepliedShowRepliesLabel.value "have responded, ">
+<!ENTITY notAllRepliedShowNotRepliedLabel.value "are expected to reply">
+<!ENTITY pastDeadlineShowNotRepliedLabel.value "did not reply in time">
+<!ENTITY remindThemButton.label "Remind them">
+<!ENTITY showRepliesButton.tooltip "Click to read the replies">
+<!ENTITY showNotRepliedButton.tooltip "Click to see who have not replied">
+<!ENTITY sendReminderButton.tooltip "Click to send a reminder">
 
 <!-- messengercompose -->
 <!ENTITY other-elements-toggle.label "Expecting replies by ">

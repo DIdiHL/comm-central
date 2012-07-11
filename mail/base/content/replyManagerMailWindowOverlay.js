@@ -100,7 +100,7 @@ function toggleExpectReplyCheckbox() {
     replyManagerUtils.resetExpectReplyForHdr(msgHdr);
     checkbox.setAttribute("checked", "false");
     menuitem.setAttribute("disabled", "true");
-    hdrViewDeployItems();
+    replyManagerHdrViewWidget.hdrViewDeployItems();
   } else if (checkbox.getAttribute("checked") == "false") {
     let params = {
       inMsgHdr: msgHdr,
@@ -113,7 +113,7 @@ function toggleExpectReplyCheckbox() {
       checkbox.setAttribute("checked", "true");
       menuitem.setAttribute("disabled", "false");
       //update the hdr view pane
-      hdrViewDeployItems();
+      replyManagerHdrViewWdiget.hdrViewDeployItems();
     }
   }
 }
@@ -130,7 +130,7 @@ function modifyExpectReply() {
   if (params.outDate) {
     replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.outDate);
     //update the hdr view pane
-    hdrViewDeployItems();
+    replyManagerHdrViewWidget.hdrViewDeployItems();
   }
 }
 

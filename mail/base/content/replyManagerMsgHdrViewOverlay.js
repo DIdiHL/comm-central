@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 Components.utils.import("resource:///modules/replyManagerUtils.js");
+Components.utils.import("resource:///modules/StringBundle.js");
 
 var replyManagerHdrViewListener = {
   displayedMessage: null,
@@ -14,7 +15,7 @@ var replyManagerHdrViewListener = {
     /* We need to memorize the displayed message so as to update
      * the hdr view pane with correct data. */
     replyManagerHdrViewListener.displayedMessage = msgHdr;
-    hdrViewDeployItems();
+    replyManagerHdrViewWidget.hdrViewDeployItems();
   }
 };
 gMessageListeners.push(replyManagerHdrViewListener);
@@ -28,7 +29,7 @@ function toggleHdrViewExpectReplyCheckbox() {
   //hdrViewDeployItems updates the header view pane to reflect the change
   if (checkbox.getAttribute("checked") == "true") {
     replyManagerUtils.resetExpectReplyForHdr(msgHdr);
-    hdrViewDeployItems();
+    replyManagerHdrViewWidget.hdrViewDeployItems();
   } else if (checkbox.getAttribute("checked") == "false") {
     let params = {
       inMsgHdr: msgHdr,
@@ -38,7 +39,7 @@ function toggleHdrViewExpectReplyCheckbox() {
                       "chrome, dialog, modal", params);
     if (params.outDate) {
       replyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
-      hdrViewDeployItems();
+      replyManagerHdrViewWidget.hdrViewDeployItems();
     }
   }
 }
@@ -57,65 +58,7 @@ function hdrViewModifyExpectReply() {
   if (params.outDate) {
     replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.outDate);
     //update the header view pane
-    hdrViewDeployItems();
-  }
-}
-
-/**
- * This function controls the display of various elements in the header view
- * and the state of some menuitems in the otherActionsPopup
- * @param aMsgHdr is the currently selected message header.
- */
-function hdrViewDeployItems() {
-  let aMsgHdr = replyManagerHdrViewListener.displayedMessage;
-  let hdrViewIcon = document.getElementById("replyManagerHdrViewIcon");
-  let beforeExpectReplyDateLabel = document.getElementById("BeforeExpectReplyDateLabel");
-  let expectReplyDateLabel = document.getElementById("ExpectReplyDateLabel");
-  expectReplyDateLabel.textContent = "";
-  let expectReplyCheckbox = document.getElementById("hdrViewExpectReplyCheckbox");
-  let modifyCommand = document.getElementById("cmd_hdrViewModifyExpectReply");
-  let tooltipTextBundle = document.getElementById("replyManagerTooltipTexts");
-  
-  if (aMsgHdr.isExpectReply) {
-    expectReplyCheckbox.setAttribute("checked", "true");
-    modifyCommand.setAttribute("disabled", "false");
-    beforeExpectReplyDateLabel.collapsed = false;
-    expectReplyDateLabel.textContent += aMsgHdr.getStringProperty("ExpectReplyDate");
-    expectReplyDateLabel.collapsed = false;
-    hdrViewIcon.collapsed = false;
-    
-    /* Choose the image and appropriate tooltip text
-     * of the hdrViewIcon according to the deadline and whether 
-     * all recipients have replied to the selected message. */
-    if (isPastDeadline(aMsgHdr.getStringProperty("ExpectReplyDate"))) {
-      //At this moment I pick this image to show that we have passed the deadline
-      hdrViewIcon.setAttribute("class", "pastDeadline");
-      hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginPastDeadline")
-                              + " " + tooltipTextBundle.getString("replyManagerIconTooltipEnd");
-    } else {
-      let chooseImage = function(subject, aCollection, recipients, didReply) {
-        /* didReply is a boolean array so when all elements in the array are true,
-         * we know that all have replied. Otherwise there are some people who have
-         * not done so. */
-        if (didReply.every(function(flag) flag)) {
-          //all people have replied, show a tick
-          hdrViewIcon.setAttribute("class", "allReplied");
-          hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginAllReplied");
-        } else {
-          //some people have not replied show an alert icon
-          hdrViewIcon.setAttribute("class", "notAllReplied");
-          hdrViewIcon.tooltipText = tooltipTextBundle.getString("replyManagerIconTooltipBeginNotAllReplied");
-        }
-        hdrViewIcon.tooltipText += " " + tooltipTextBundle.getString("replyManagerIconTooltipEnd");
-      };
-      replyManagerUtils.getNotRepliedForHdr(aMsgHdr, chooseImage);
-    }
-  } else {
-    expectReplyCheckbox.setAttribute("checked", "false");
-    modifyCommand.setAttribute("disabled", "true");
-    beforeExpectReplyDateLabel.collapsed = true;
-    expectReplyDateLabel.collapsed = true;
-    hdrViewIcon.collapsed = true;
+    replyManagerHdrViewWidget.hdrViewDeployItems();
   }
 }
 
@@ -128,3 +71,167 @@ function isPastDeadline(aDateStr) {
   let today = new Date().setHours(0,0,0,0);
   return deadline < today;
 }
+
+var replyManagerHdrViewWidget = {
+  replyManagerStrings: null,
+  
+  /* The following are some xul elements which will be hidden or shown according to
+   * the isExpectReply property of the selected message. */
+  
+  //expectReplyDateHbox 
+  beforeExpectReplyDateLabel: null,
+  
+  expectReplyDateLabel: null,
+  
+  expectReplyDateHbox: null,
+  
+  //otherActionsPopup
+  expectReplyCheckbox: null,
+  
+  modifyCommand: null,
+  
+  //allRepliedBox
+  allRepliedBox: null,
+  
+  //notAllRepliedBox
+  notAllRepliedBox: null,
+  
+  hdrViewIcon: null,
+  
+  notAllRepliedLabel: null,
+  pastDeadlineLabel: null,
+  
+  notAllRepliedShowRepliesButton: null,
+  
+  showNotRepliedButton: null,
+
+  notAllRepliedShowNotRepliedLabel: null,
+  pastDeadlineShowNotRepliedLabel: null,
+  
+  init: function() {
+    this.replyManagerStrings = new StringBundle("chrome://messenger/locale/replyManager.properties");
+    //expectReplyDateHbox 
+    this.beforeExpectReplyDateLabel = document.getElementById("BeforeExpectReplyDateLabel");
+  
+    this.expectReplyDateLabel = document.getElementById("ExpectReplyDateLabel");
+  
+    this.expectReplyDateHbox = document.getElementById("expectReplyDateHbox");
+  
+    //otherActionsPopup
+    this.expectReplyCheckbox = document.getElementById("hdrViewExpectReplyCheckbox");
+  
+    this.modifyCommand = document.getElementById("cmd_hdrViewModifyExpectReply");
+  
+    //allRepliedBox
+    this.allRepliedBox = document.getElementById("allRepliedBox");
+  
+    //notAllRepliedBox
+    this.notAllRepliedBox = document.getElementById("notAllRepliedBox");
+  
+    this.hdrViewIcon = document.getElementById("notAllRepliedIcon");
+  
+    this.notAllRepliedLabel = document.getElementById("notAllRepliedLabel");
+    this.pastDeadlineLabel = document.getElementById("pastDeadlineLabel");
+  
+    this.notAllRepliedShowRepliesButton = document.getElementById("notAllRepliedShowRepliesButton");
+  
+    this.showNotRepliedButton = document.getElementById("showNotRepliedButton");
+
+    this.notAllRepliedShowNotRepliedLabel = document.getElementById("notAllRepliedShowNotRepliedLabel"); 
+    this.pastDeadlineShowNotRepliedLabel = document.getElementById("pastDeadlineShowNotRepliedLabel");
+  },
+  
+  /**
+   * This method controls the display of various elements in the header view
+   * and the state of some menuitems in the otherActionsPopup */
+  hdrViewDeployItems: function() {
+    let msgHdr = replyManagerHdrViewListener.displayedMessage;
+    this.expectReplyDateLabel.textContent = "";
+    
+    if (msgHdr.isExpectReply) {
+      this.expectReplyCheckbox.setAttribute("checked", "true");
+      this.modifyCommand.setAttribute("disabled", "false");
+      this.expectReplyDateHbox.collapsed = false;
+      this.expectReplyDateLabel.textContent += msgHdr.getStringProperty("ExpectReplyDate");
+      replyManagerUtils.getNotRepliedForHdr(msgHdr, this.chooseIcon);
+    } else {
+      this.expectReplyCheckbox.setAttribute("checked", "false");
+      this.modifyCommand.setAttribute("disabled", "true");
+      this.expectReplyDateHbox.collapsed = true;
+      this.allRepliedBox.collapsed = true;
+      this.notAllRepliedBox.collapsed = true;
+    }
+  },
+  
+  /* This method not only changes the icon but also hide/show appropriate
+   * buttons and texts below the "Expecting replies by ..." text.
+   * It receives arguments according to the parameters of the callback function
+   * of replyManagerUtils.getNotReplied method. */
+  chooseIcon: function(subject, aCollection, recipients, didReply) {
+    let numResponded = 0;//the number of people who have responded
+    let allReplied = true;
+      
+    // didReply is a boolean array
+    didReply.forEach(function(flag) {
+      if (flag) {
+        ++numResponded;
+      } else {
+        /* We found on peoson who have not responded, so allReplied
+         * should be set to false. */
+        allReplied = false;
+      }
+    });
+    
+    let nobody = replyManagerHdrViewWidget
+                  .replyManagerStrings.getString("msgHdrViewButtonLabelNobody");
+    let person = replyManagerHdrViewWidget
+                  .replyManagerStrings.getString("msgHdrViewButtonLabelPerson");
+    let people = replyManagerHdrViewWidget
+                  .replyManagerStrings.getString("msgHdrViewButtonLabelPeople");
+    
+    if (allReplied) {
+      replyManagerHdrViewWidget.allRepliedBox.collapsed = false;
+      replyManagerHdrViewWidget.notAllRepliedBox.collapsed = true;
+    } else {
+      let msgHdr = replyManagerHdrViewListener.displayedMessage;
+      replyManagerHdrViewWidget.allRepliedBox.collapsed = true;
+      replyManagerHdrViewWidget.notAllRepliedBox.collapsed = false;
+      
+      /* Set the label of this button to the number of people responded */
+      if (numResponded == 0) {
+        replyManagerHdrViewWidget.notAllRepliedShowRepliesButton.textContent = nobody;
+      } else if (numResponded == 1) {
+        replyManagerHdrViewWidget.notAllRepliedShowRepliesButton.textContent = person;
+      } else {
+        replyManagerHdrViewWidget.notAllRepliedShowRepliesButton.textContent = "" + numResponded + " " + people;
+      }
+      
+      /* Set the label of this button to the number of people not responded */
+      let numNotResponded = didReply.length - numResponded;
+      if (numNotResponded == 1) {
+        replyManagerHdrViewWidget.showNotRepliedButton.textContent = person;
+      } else {
+        replyManagerHdrViewWidget.showNotRepliedButton.textContent = numNotResponded + " " + people;
+      }
+      
+      if (isPastDeadline(msgHdr.getStringProperty("ExpectReplyDate"))) {
+        /* Ok we have passed the deadline for replies so the icon will be set to the cross
+         * and hide the text of the other situation. */
+        replyManagerHdrViewWidget.hdrViewIcon.setAttribute("class", "replyManagerHdrViewIcon pastDeadline");
+        replyManagerHdrViewWidget.notAllRepliedLabel.collapsed = true;
+        replyManagerHdrViewWidget.pastDeadlineLabel.collapsed = false;
+        replyManagerHdrViewWidget.notAllRepliedShowNotRepliedLabel.collapsed = true;
+        replyManagerHdrViewWidget.pastDeadlineShowNotRepliedLabel.collapsed = false;
+      } else {
+        /* Set the icon to a alert and hide the past-deadline text.*/
+        replyManagerHdrViewWidget.hdrViewIcon.setAttribute("class", "replyManagerHdrViewIcon notAllReplied");
+        replyManagerHdrViewWidget.notAllRepliedLabel.collapsed = false;
+        replyManagerHdrViewWidget.pastDeadlineLabel.collapsed = true;
+        replyManagerHdrViewWidget.notAllRepliedShowNotRepliedLabel.collapsed = false;
+        replyManagerHdrViewWidget.pastDeadlineShowNotRepliedLabel.collapsed = true;
+      }
+    }
+  },
+};
+
+window.addEventListener("load", function() {replyManagerHdrViewWidget.init();});

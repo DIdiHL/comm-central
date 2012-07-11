@@ -3,11 +3,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
  
 /* replyManagerMsgHdrViewOverlay.xul */
-#replyManagerHdrViewIcon {
-  width: 30px;
-  height: 30px;
+.replyManagerHdrViewIcon {
+  width: 16px;
+  height: 16px;
 }
-
+.replyManagerHdrViewButton {
+  -moz-appearance: toolbarbutton !important;
+}
 .pastDeadline {
   list-style-image: url("chrome://messenger/skin/icons/exclude-selected.png");
 }
@@ -18,4 +20,12 @@
 
 .notAllReplied {
   list-style-image: url("chrome://messenger/skin/icons/error.png");
+}
+
+.replyManagerHBox {
+  -moz-box-align: center;
+}
+
+.replyManagerVBox {
+  -moz-box-align: end;
 }

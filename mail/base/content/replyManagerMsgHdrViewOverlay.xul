@@ -12,29 +12,68 @@
 
 <script type="application/javascript" src="chrome://messenger/content/replyManagerMsgHdrViewOverlay.js"/>
 
-<stringbundleset>
-  <stringbundle id="replyManagerTooltipTexts" src="chrome://messenger/locale/replyManager.properties"/>
-</stringbundleset>
-
 <commandset>
   <command id="cmd_hdrViewToggleExpectReply" oncommand="toggleHdrViewExpectReplyCheckbox();"/>
   <command id="cmd_hdrViewModifyExpectReply" oncommand="hdrViewModifyExpectReply();"/>
   <command id="cmd_hdrViewStartComposeReminder" oncommand="startComposeReminder();"/>
   <command id="cmd_replyManagerShowConversation" 
            oncommand="gConversationOpener.openConversationForMessages(gFolderDisplay.selectedMessages);"/>
+  <command id="cmd_replyManagerShowNotReplied" oncommand="alert('Stub!');"/>
 </commandset>
 
 <vbox id="otherActionsBox">
-  <hbox id="ExpectReplyDateHbox" position="2" align="center">
-      <!-- I would like this button to be square so I use toolbarbutton instead of button
-           The image will be determined in the hdrViewDeployItems function -->
-      <toolbarbutton id="replyManagerHdrViewIcon"
-              command="cmd_replyManagerShowConversation"/>
+  <hbox id="expectReplyDateHbox" position="2" class="replyManagerHBox">
     <label id="BeforeExpectReplyDateLabel" value="&BeforeExpectReplyDateLabel.value;" flex="1" role="textbox"
 	       aria-readonly="true"/>
     <label id="ExpectReplyDateLabel" flex="1" role="textbox"
 	       aria-readonly="true"/>
   </hbox>
+  <!-- Only one of the following vboxes will be visible, which is determined by the hdrViewDeployItems function -->
+  <vbox id="allRepliedBox" position="3" class="replyManagerVBox">
+    <hbox class="replyManagerHBox">
+      <image id="allRepliedIcon" class="replyManagerHdrViewIcon allReplied"/>
+      <label id="allRepliedLabel" value="&allRepliedLabel.value;" role="textbox"
+             aria-readonly="true"/>
+      <button id="allRepliedShowRepliesButton" label="&allRepliedShowRepliesButton.label;"
+              command="cmd_replyManagerShowConversation"
+              tooltiptext="&showRepliesButton.tooltip;"
+              class="msgHeaderView-button replyManagerHdrViewButton"/>
+    </hbox>
+  </vbox>
+  
+  <!-- There are two situations: past deadline or not -->
+  <vbox id="notAllRepliedBox" position="4" class="replyManagerVBox">
+    <hbox class="replyManagerHBox">
+      <!-- The image is set in the hdrViewDeployItems method -->
+      <image id="notAllRepliedIcon"/>
+      <!-- This label is shown if still within deadline -->
+      <label id="notAllRepliedLabel" value="&notAllRepliedLabel.value;" role="textbox"
+             aria-readonly="true"/>
+      <!-- This label is shown if past deadline -->
+      <label id="pastDeadlineLabel" value="&pastDeadlineLabel.value;" role="textbox"
+             aria-readonly="true"/>
+      <button id="notAllRepliedShowRepliesButton" command="cmd_replyManagerShowConversation"
+              tooltiptext="&showRepliesButton.tooltip;"
+              class="msgHeaderView-button replyManagerHdrViewButton"/>
+      <label id="notAllRepliedShowRepliesLabel" value="&notAllRepliedShowRepliesLabel.value;"
+             role="textbox" aria-readonly="true"/>
+    </hbox>
+    <hbox class="replyManagerHBox">
+      <button id="showNotRepliedButton" command="cmd_replyManagerShowNotReplied"
+              tooltiptext="&showNotRepliedButton.tooltip;"
+              class="msgHeaderView-button replyManagerHdrViewButton"/>
+      <!-- This label is shown if still within deadline -->
+      <label id="notAllRepliedShowNotRepliedLabel" value="&notAllRepliedShowNotRepliedLabel.value;"
+             role="textbox" aria-readonly="true"/>
+      <!-- This label is shown if past deadline -->
+      <label id="pastDeadlineShowNotRepliedLabel" value="&pastDeadlineShowNotRepliedLabel.value;"
+             role="textbox" aria-readonly="true"/>
+      <button id="notAllRepliedRemindThemButton" label="&remindThemButton.label;"
+              command="cmd_hdrViewStartComposeReminder"
+              tooltiptext="&sendReminderButton.tooltip;"
+              class="msgHeaderView-button replyManagerHdrViewButton"/>
+    </hbox>
+  </vbox>
 </vbox>
 
 <menupopup id="otherActionsPopup">

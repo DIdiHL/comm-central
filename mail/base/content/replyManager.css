@@ -9,6 +9,7 @@
 }
 .replyManagerHdrViewButton {
   -moz-appearance: toolbarbutton !important;
+  margin: 0px 0.1em 0.1em 0.1em;
 }
 .pastDeadline {
   list-style-image: url("chrome://messenger/skin/icons/exclude-selected.png");

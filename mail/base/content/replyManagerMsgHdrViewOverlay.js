@@ -78,13 +78,6 @@ var replyManagerHdrViewWidget = {
   /* The following are some xul elements which will be hidden or shown according to
    * the isExpectReply property of the selected message. */
   
-  //expectReplyDateHbox 
-  beforeExpectReplyDateLabel: null,
-  
-  expectReplyDateLabel: null,
-  
-  expectReplyDateHbox: null,
-  
   //otherActionsPopup
   expectReplyCheckbox: null,
   
@@ -95,6 +88,8 @@ var replyManagerHdrViewWidget = {
   
   //notAllRepliedBox
   notAllRepliedBox: null,
+  
+  expectReplyDateLabel: null,
   
   hdrViewIcon: null,
   
@@ -110,12 +105,6 @@ var replyManagerHdrViewWidget = {
   
   init: function() {
     this.replyManagerStrings = new StringBundle("chrome://messenger/locale/replyManager.properties");
-    //expectReplyDateHbox 
-    this.beforeExpectReplyDateLabel = document.getElementById("BeforeExpectReplyDateLabel");
-  
-    this.expectReplyDateLabel = document.getElementById("ExpectReplyDateLabel");
-  
-    this.expectReplyDateHbox = document.getElementById("expectReplyDateHbox");
   
     //otherActionsPopup
     this.expectReplyCheckbox = document.getElementById("hdrViewExpectReplyCheckbox");
@@ -127,6 +116,8 @@ var replyManagerHdrViewWidget = {
   
     //notAllRepliedBox
     this.notAllRepliedBox = document.getElementById("notAllRepliedBox");
+    
+    this.expectReplyDateLabel = document.getElementById("ExpectReplyDateLabel");
   
     this.hdrViewIcon = document.getElementById("notAllRepliedIcon");
   
@@ -151,13 +142,11 @@ var replyManagerHdrViewWidget = {
     if (msgHdr.isExpectReply) {
       this.expectReplyCheckbox.setAttribute("checked", "true");
       this.modifyCommand.setAttribute("disabled", "false");
-      this.expectReplyDateHbox.collapsed = false;
-      this.expectReplyDateLabel.textContent += msgHdr.getStringProperty("ExpectReplyDate");
+      this.expectReplyDateLabel.textContent += msgHdr.getStringProperty("ExpectReplyDate") + ".";
       replyManagerUtils.getNotRepliedForHdr(msgHdr, this.chooseIcon);
     } else {
       this.expectReplyCheckbox.setAttribute("checked", "false");
       this.modifyCommand.setAttribute("disabled", "true");
-      this.expectReplyDateHbox.collapsed = true;
       this.allRepliedBox.collapsed = true;
       this.notAllRepliedBox.collapsed = true;
     }
@@ -218,6 +207,7 @@ var replyManagerHdrViewWidget = {
         /* Ok we have passed the deadline for replies so the icon will be set to the cross
          * and hide the text of the other situation. */
         replyManagerHdrViewWidget.hdrViewIcon.setAttribute("class", "replyManagerHdrViewIcon pastDeadline");
+        replyManagerHdrViewWidget.expectReplyDateLabel.collapsed = true;
         replyManagerHdrViewWidget.notAllRepliedLabel.collapsed = true;
         replyManagerHdrViewWidget.pastDeadlineLabel.collapsed = false;
         replyManagerHdrViewWidget.notAllRepliedShowNotRepliedLabel.collapsed = true;
@@ -225,6 +215,7 @@ var replyManagerHdrViewWidget = {
       } else {
         /* Set the icon to a alert and hide the past-deadline text.*/
         replyManagerHdrViewWidget.hdrViewIcon.setAttribute("class", "replyManagerHdrViewIcon notAllReplied");
+        replyManagerHdrViewWidget.expectReplyDateLabel.collapsed = false;
         replyManagerHdrViewWidget.notAllRepliedLabel.collapsed = false;
         replyManagerHdrViewWidget.pastDeadlineLabel.collapsed = true;
         replyManagerHdrViewWidget.notAllRepliedShowNotRepliedLabel.collapsed = false;

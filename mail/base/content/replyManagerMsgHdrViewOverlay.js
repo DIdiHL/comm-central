@@ -62,6 +62,29 @@ function hdrViewModifyExpectReply() {
   }
 }
 
+/* open the dialog showing the list of mail addresses that have not responded to
+ * the displayed message. */
+function showNotReplied() {
+  let openDialogFunction = function(aGlodaMsg, aCollection, recipients, didReply) {
+    let addressList = [];
+    for each(let [i, recipient] in Iterator(recipients)) {
+      if (!didReply[i])
+        addressList.push(recipient);
+    }
+    let params = {
+      inAddressList: addressList,
+      outSendReminder: null,
+    };
+    window.openDialog("chrome://messenger/content/replyManagerShowAddressDialog.xul","",
+                    "chrome, dialog, modal", params);
+    //If the user clicked the accept button, open the compose window to send a reminder.
+    if (params.outSendReminder) {
+      replyManagerUtils.startReminderComposeForHdr(aGlodaMsg.folderMessage);
+    }
+  };
+  replyManagerUtils.getNotRepliedForHdr(replyManagerHdrViewListener.displayedMessage, openDialogFunction);
+}
+
 /* isPastDeadline returns true if today's date is past the deadline indicated
  * by the ExpectReplyDate property of the message header.
  * @param aDateStr is the deadline */ 
@@ -156,7 +179,7 @@ var replyManagerHdrViewWidget = {
    * buttons and texts below the "Expecting replies by ..." text.
    * It receives arguments according to the parameters of the callback function
    * of replyManagerUtils.getNotReplied method. */
-  chooseIcon: function(subject, aCollection, recipients, didReply) {
+  chooseIcon: function(aGlodaMsg, aCollection, recipients, didReply) {
     let numResponded = 0;//the number of people who have responded
     let allReplied = true;
       

@@ -33,3 +33,8 @@
 <!ENTITY replyManagerAcceptButton.label "Save">
 <!ENTITY replyManagerCancelButton.label "Cancel">
 <!ENTITY replyManagerDateDialogHeader.title "Pick a deadline:">
+
+<!-- replyManagerShowAddressDialog -->
+<!ENTITY replyManagerShowAddressDialog.title "Reply Manager">
+<!ENTITY replyManagerShowAddressDialogAcceptButton.label "Send Reminder">
+<!ENTITY replyManagerShowAddressDialogHeader.title "Expecting replies from:">

@@ -18,12 +18,11 @@ Cu.import("resource:///modules/Services.jsm");
 var replyManagerUtils = {
   /** Get the list of email addresses who have not replied to the message
    * @param aGlodaMsg
-   * @param callback function: receiving four arguments - subject, aCollection, 
+   * @param callback function: receiving four arguments - aGlodaMsg, aCollection, 
                                recipients aray and reply status flags array.
    */
   getNotRepliedForGlodaMsg: function replyManagerUtils_getNotRepliedForGlodaMsg(aGlodaMsg, callback) 
   {
-    let subject = aGlodaMsg._subject;
     aGlodaMsg.conversation.getMessagesCollection({
       onItemsAdded: function() {},
       onItemsModified: function() {},
@@ -53,7 +52,7 @@ var replyManagerUtils = {
             }
           }
         }
-        callback(subject, aCollection, recipients, didReply)
+        callback(aGlodaMsg, aCollection, recipients, didReply)
       }
     });
   },
@@ -176,11 +175,11 @@ var replyManagerUtils = {
     replyManagerUtils.getNotRepliedForHdr(aMsgHdr, replyManagerUtils.openComposeWindow);
   },
 
-  openComposeWindow: function replyManagerUtils_openComposeWindow(subject, aCollection, recipientsList, didReply) {
+  openComposeWindow: function replyManagerUtils_openComposeWindow(aGlodaMsg, aCollection, recipientsList, didReply) {
     let recipients = getNotRepliedRecipients(recipientsList, didReply);
     /* Create the compose window with a mailto url and the recipients and subject will
      * be automatically filled in. */
-    let mailtoURL = "mailto:" + recipients + "?subject=" + subject;
+    let mailtoURL = "mailto:" + recipients + "?subject=" + aGlodaMsg._subject;
     let msgComposeService = Cc["@mozilla.org/messengercompose;1"]
                              .getService(Components.interfaces.nsIMsgComposeService);
     let aURI = Services.io.newURI(mailtoURL, null, null);

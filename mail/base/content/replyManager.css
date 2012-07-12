@@ -9,7 +9,8 @@
 }
 .replyManagerHdrViewButton {
   -moz-appearance: toolbarbutton !important;
-  margin: 0px 0.1em 0.1em 0.1em;
+  margin: 0px 0.1em 0.08em 0.1em;
+  font-weight: bold;
 }
 .pastDeadline {
   list-style-image: url("chrome://messenger/skin/icons/exclude-selected.png");
@@ -29,4 +30,13 @@
 
 .replyManagerVBox {
   -moz-box-align: end;
+}
+
+/* replyManagerShowAddressDialog.xul */
+#replyManagerAddressRichlist {
+  max-height: 100%;
+}
+
+#replyManagerAddressBox {
+  height: 250px;
 }

@@ -18,7 +18,7 @@
   <command id="cmd_hdrViewStartComposeReminder" oncommand="startComposeReminder();"/>
   <command id="cmd_replyManagerShowConversation" 
            oncommand="gConversationOpener.openConversationForMessages(gFolderDisplay.selectedMessages);"/>
-  <command id="cmd_replyManagerShowNotReplied" oncommand="alert('Stub!');"/>
+  <command id="cmd_replyManagerShowNotReplied" oncommand="showNotReplied();"/>
 </commandset>
 
 <vbox id="otherActionsBox">

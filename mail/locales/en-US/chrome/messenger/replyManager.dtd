@@ -6,6 +6,7 @@
 <!ENTITY replyManagerTools.label "Reply Manager">
 <!ENTITY replyManagerSettings.label "Settings">
 <!ENTITY createCalendarEventMenuitem.label "Create Calendar Event">
+<!ENTITY setBoilerplateMenuitem.label "Set Reminder Boilerplate">
 <!ENTITY replyManagerComposeReminderItem.label "Compose Reminder">
 <!ENTITY replyManagerMailContextMenu.label "Reply Manager">
 <!ENTITY replyManagerExpectReplyCheckbox.label "Expect Reply">
@@ -38,3 +39,7 @@
 <!ENTITY replyManagerShowAddressDialog.title "Reply Manager">
 <!ENTITY replyManagerShowAddressDialogAcceptButton.label "Send Reminder">
 <!ENTITY replyManagerShowAddressDialogHeader.title "Expecting replies from:">
+
+<!-- replyManagerBoilerplateDialog -->
+<!ENTITY replyManagerBoilerplateDialog.title "Reply Manager">
+<!ENTITY replyManagerBoilerplateDialogheader.title "Reminder boilerplate:">

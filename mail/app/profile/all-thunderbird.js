@@ -764,3 +764,5 @@ pref("mail.cloud_files.learn_more_url", "https://support.mozillamessaging.com/kb
 
 //Reply Manager
 pref("mail.replymanager.create_calendar_event_enabled", false);
+  //This is the boilerplateused that will be filled into the content area in the compose window
+pref("mail.replymanager.boilerplate", "");

@@ -12,9 +12,11 @@ buttons="accept,cancel"
 buttonlabelaccept="&replyManagerAcceptButton.label;"
 buttonlabelcancel="&replyManagerCancelButton.label;"
 ondialogaccept="return doOK();"
-ondialogcancel="return doCancel();">
+ondialogcancel="return doCancel();"
+flex="1">
 
 <script type="text/javascript">
+<![CDATA[
 /* If the message is expecting replies we need to set the datepicker
  * the value of the expect reply date for convenience.
  */
@@ -36,6 +38,7 @@ function doOK() {
 function doCancel() {
   return true;
 }
+]]>
 </script>
 
 <dialogheader title="&replyManagerDateDialogHeader.title;"/>

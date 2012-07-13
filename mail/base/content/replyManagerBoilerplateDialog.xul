@@ -6,36 +6,35 @@
 <?xml-stylesheet href="chrome://messenger/content/replyManager.css"?>
 <!DOCTYPE dialog  SYSTEM "chrome://messenger/locale/replyManager.dtd">
 
-<dialog id="replyManagerShowAddressDialog" title="&replyManagerShowAddressDialog.title;" 
+<dialog id="replyManagerBoilerplateDialog" title="&replyManagerBoilerplateDialog.title;" 
 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 onload="onLoad();"
 buttons="accept,cancel"
-buttonlabelaccept="&replyManagerShowAddressDialogAcceptButton.label;"
 ondialogaccept="return doOK();"
 ondialogcancel="return doCancel();"
 flex="1">
-
 <script type="text/javascript">
 <![CDATA[
+var prefBranch;
+var textbox;
 function onLoad() {
-  let addressList = window.arguments[0].inAddressList;
-  let richlist = document.getElementById("replyManagerAddressRichlist");
-  addressList.forEach(function(address) {
-    richlist.appendItem(address);
-  });
+  prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                .getService(Components.interfaces.nsIPrefService)
+                .getBranch("mail.replymanager.");
+  textbox = document.getElementById("boilerplateTextbox");
+  textbox.value = prefBranch.getCharPref("boilerplate");
 }
 
 function doOK() {
-  window.arguments[0].outSendReminder = true;
+  prefBranch.setCharPref("boilerplate", textbox.value);
   return true;
 }
 
 function doCancel() {
-  window.arguments[0].outSendReminder = false;
   return true;
 }
 ]]>
 </script>
-<dialogheader title="&replyManagerShowAddressDialogHeader.title;"/>
-    <richlistbox id="replyManagerAddressRichlist" flex="1"/>
+<dialogheader title="&replyManagerBoilerplateDialogheader.title;"/>
+<textbox id="boilerplateTextbox" multiline="true" newlines="pasteintact" flex="1"/>
 </dialog>

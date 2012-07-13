@@ -49,6 +49,8 @@ function onLoad()
   }
 }
 
+//---------------------taskPopup section-----------------------------
+
 /*
  * toggleCreateCalendarEvent this function will toggle the boolean preference
  * that controls whether a calendar event is created when we mark a message
@@ -61,6 +63,52 @@ function toggleCreateCalendarEvent()
   gPrefBranch.setBoolPref("mail.replymanager.create_calendar_event_enabled", !prefValue);
 }
 
+/* the state of the create calendar event checkbox is toggled only when we
+ * observe a change of the associated preference so that all mail windows
+ * get updated. */
+var prefObserver = {
+  prefs: null,
+
+  onLoad: function()
+  {
+    this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
+				 .getService(Components.interfaces.nsIPrefService)
+				 .getBranch("mail.replymanager.");
+    this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+    this.prefs.addObserver("", this, false);
+  },
+
+  onUnload: function()
+  {
+    this.prefs.removeObserver("", this);
+  },
+
+  observe: function(subject, topic, data)
+  {
+    if (topic != "nsPref:changed")
+    {
+      return;
+    }
+
+    switch(data)
+    {
+      /*If the value of this pref is changed in other mail window,
+        we need to change the state of the menuitem in this window accordingly.*/
+      case "create_calendar_event_enabled":
+        let menuitem = document.getElementById(createCalendarEventMenuitem);
+        let newPrefValue = gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled");
+        menuitem.setAttribute("checked", newPrefValue)
+        break;
+    }
+  }
+};
+
+function setBoilerplate() {
+  window.openDialog("chrome://messenger/content/replyManagerBoilerplateDialog.xul", "",
+                    "chrome, dialog").focus();
+}
+
+//--------------------mailContext menu section----------------------------
 /* startComposeReminder opens the message compose window with some fields filled
  * with some boilerplates.*/
 function startComposeReminder() {
@@ -134,50 +182,12 @@ function modifyExpectReply() {
   }
 }
 
-var prefObserver = {
-  prefs: null,
-
-  onLoad: function()
-  {
-    this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
-				 .getService(Components.interfaces.nsIPrefService)
-				 .getBranch("mail.replymanager.");
-    this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
-    this.prefs.addObserver("", this, false);
-  },
-
-  onUnload: function()
-  {
-    this.prefs.removeObserver("", this);
-  },
-
-  observe: function(subject, topic, data)
-  {
-    if (topic != "nsPref:changed")
-    {
-      return;
-    }
-
-    switch(data)
-    {
-      /*If the value of this pref is changed in other mail window,
-        we need to change the state of the menuitem in this window accordingly.*/
-      case "create_calendar_event_enabled":
-        let menuitem = document.getElementById(createCalendarEventMenuitem);
-        let newPrefValue = gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled");
-        menuitem.setAttribute("checked", newPrefValue)
-        break;
-    }
-  }
-};
-
 /**
  * Listener for new messages and message delete operation.
  * Some emails are associated with calendar events so the
  * the addition and removal of such messages should be
  * watched for so that the calendar event is up to date.
  */
-//TODO implement the messagesDeleted listener
 var replyManagerMailListener = {
   // This is used for receiving the "itemAdded" event notification.
   collections: {},

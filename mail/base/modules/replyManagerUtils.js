@@ -180,12 +180,18 @@ var replyManagerUtils = {
     /* Create the compose window with a mailto url and the recipients and subject will
      * be automatically filled in. */
     let mailtoURL = "mailto:" + recipients + "?subject=" + aGlodaMsg._subject;
+    let boilerplate = gPrefBranch.getCharPref("mail.replymanager.boilerplate");
+    // mailto uses "%0D%0A" hex sequence to represent newlines
+    boilerplate = boilerplate.replace(RegExp("\n", "g"), "%0D%0A");
+    
+    mailtoURL += "&body=" + boilerplate;
     let msgComposeService = Cc["@mozilla.org/messengercompose;1"]
                              .getService(Components.interfaces.nsIMsgComposeService);
     let aURI = Services.io.newURI(mailtoURL, null, null);
     msgComposeService.OpenComposeWindowWithURI(null, aURI);
   }
 };
+
 
 function getNotRepliedRecipients(recipientsList, didReply) {
   let recipients = [recipient for each ([i, recipient] in Iterator(recipientsList)) if (!didReply[i])].join(",");
@@ -224,7 +230,7 @@ var isExpectReply = {
       parameterNoun: null,
     });
   },
-  
+
   process: function(aGlodaMessage, aRawReps, aIsNew, aCallbackHandle) {
     aGlodaMessage.isExpectReply = aRawReps.header.isExpectReply;
     yield Gloda.kWorkDone;

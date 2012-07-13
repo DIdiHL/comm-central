@@ -17,6 +17,7 @@
   <command id="cmd_toggleExpectReply" oncommand="toggleExpectReplyCheckbox();"/>
   <command id="cmd_modifyExpectReply" oncommand="modifyExpectReply();"/>
   <command id="cmd_startComposeReminder" oncommand="startComposeReminder();"/>
+  <command id="cmd_setBoilerplate" oncommand="setBoilerplate();"/>
 </commandset>
 
 <menupopup id="taskPopup">
@@ -26,6 +27,8 @@
         <menupopup id="replyManagerSettingsPopup">
           <menuitem id="createCalendarEventMenuitem" label="&createCalendarEventMenuitem.label;" 
                     autocheck="false" type="checkbox" command="cmd_toggleCreateCalendarEvent"/>
+          <menuitem id="setBoilerPlateMenuitem" label="&setBoilerplateMenuitem.label;"
+                    command="cmd_setBoilerplate"/>
         </menupopup>
       </menu>
     </menupopup>

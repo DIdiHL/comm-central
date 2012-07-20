@@ -174,13 +174,13 @@ var replyManagerHdrViewWidget = {
     
     if (msgHdr.isExpectReply) {
       this.expectReplyCheckbox.setAttribute("checked", "true");
-      this.modifyCommand.setAttribute("disabled", "false");
+      this.modifyCommand.disabled = false;
       this.expectReplyDateLabel.textContent += msgHdr.getStringProperty("ExpectReplyDate") + ".";
       this.updatingHdrView(true);
       replyManagerUtils.getNotRepliedForHdr(msgHdr, this.chooseIcon.bind(this));
     } else {
       this.expectReplyCheckbox.setAttribute("checked", "false");
-      this.modifyCommand.setAttribute("disabled", "true");
+      this.modifyCommand.disabled = true;
       this.allRepliedBox.collapsed = true;
       this.notAllRepliedBox.collapsed = true;
     }
@@ -256,7 +256,7 @@ var replyManagerHdrViewWidget = {
         this.pastDeadlineShowNotRepliedLabel.collapsed = true;
       }
     }
-    this.updateHdrView(false);
+    this.updatingHdrView(false);
   },
 };
 

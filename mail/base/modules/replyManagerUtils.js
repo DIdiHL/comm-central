@@ -52,7 +52,7 @@ var replyManagerUtils = {
             }
           }
         }
-        callback(aGlodaMsg, aCollection, recipients, didReply)
+        callback.call(this, aGlodaMsg, aCollection, recipients, didReply)
       }
     });
   },
@@ -72,7 +72,7 @@ var replyManagerUtils = {
         //We need to ensure that the message has been indexed
         if (aCollection.items.length > 0) 
         {
-          replyManagerUtils.getNotRepliedForGlodaMsg(aCollection.items[0], callback);
+          replyManagerUtils.getNotRepliedForGlodaMsg.call(this, aCollection.items[0], callback);
         }
       }
     });
@@ -84,6 +84,11 @@ var replyManagerUtils = {
   setExpectReplyForHdr: function replyManagerUtils_setExpectReplyForHdr(aMsgHdr, aDateStr) 
   {
     aMsgHdr.markExpectReply(true, aDateStr);
+    
+    /* This is a workaround to get the above change reflected in the Gloda representation.*/
+    aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
+    aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
+    
     if (gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled"))
       replyManagerUtils.addHdrToCalendar(aMsgHdr);
   },
@@ -94,6 +99,11 @@ var replyManagerUtils = {
   resetExpectReplyForHdr: function replyManagerUtils_resetExpectReplyForHdr(aMsgHdr) 
   {
     aMsgHdr.markExpectReply(false, "");
+    
+    /* This is a workaround to get the above change reflected in the Gloda representation.*/
+    aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
+    aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
+    
     /* We should attempt to remove the event regardless of the preference because an event might be created
      * before the preference was set to false. */
     replyManagerUtils.removeHdrFromCalendar(aMsgHdr);
@@ -224,7 +234,7 @@ var isExpectReply = {
       attributeName: "isExpectReply",
       bind: true,
       singular: true,
-      facet: true,
+      canQuery: true,
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_BOOLEAN,
       parameterNoun: null,

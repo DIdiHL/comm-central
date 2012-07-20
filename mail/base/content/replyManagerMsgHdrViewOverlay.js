@@ -35,7 +35,7 @@ function toggleHdrViewExpectReplyCheckbox() {
       inMsgHdr: msgHdr,
       outDate: null
     };
-    window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "",
+    window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "replyManagerDatePicker",
                       "chrome, dialog, modal", params);
     if (params.outDate) {
       replyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
@@ -53,7 +53,7 @@ function hdrViewModifyExpectReply() {
     inMsgHdr: msgHdr,
     outDate: null
   };
-  window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "",
+  window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "replyManagerDateDialog",
                     "chrome, dialog, modal", params);
   if (params.outDate) {
     replyManagerUtils.updateExpectReplyForHdr(msgHdr, params.outDate);
@@ -75,7 +75,7 @@ function showNotReplied() {
       inAddressList: addressList,
       outSendReminder: null,
     };
-    window.openDialog("chrome://messenger/content/replyManagerShowAddressDialog.xul","",
+    window.openDialog("chrome://messenger/content/replyManagerShowAddressDialog.xul","replyManagerDateDialog",
                     "chrome, dialog, modal", params);
     //If the user clicked the accept button, open the compose window to send a reminder.
     if (params.outSendReminder) {
@@ -126,6 +126,15 @@ var replyManagerHdrViewWidget = {
   notAllRepliedShowNotRepliedLabel: null,
   pastDeadlineShowNotRepliedLabel: null,
   
+  /* Many elements are updated through an asynchronous Gloda query. While testing
+   * we need to wait for the query to complete before proceeding. This method adds
+   * a js property to the allRepliedBox (the choice is arbitrary) to indicate 
+   * whether a query is going on.*/
+  updatingHdrView: function(bUpdating) {
+    let box = document.getElementById("allRepliedBox");
+    box.updatingHdrView = bUpdating;
+  },
+  
   init: function() {
     this.replyManagerStrings = new StringBundle("chrome://messenger/locale/replyManager.properties");
   
@@ -136,6 +145,7 @@ var replyManagerHdrViewWidget = {
   
     //allRepliedBox
     this.allRepliedBox = document.getElementById("allRepliedBox");
+    this.allRepliedBox.updatingHdrView = false;
   
     //notAllRepliedBox
     this.notAllRepliedBox = document.getElementById("notAllRepliedBox");
@@ -166,7 +176,8 @@ var replyManagerHdrViewWidget = {
       this.expectReplyCheckbox.setAttribute("checked", "true");
       this.modifyCommand.setAttribute("disabled", "false");
       this.expectReplyDateLabel.textContent += msgHdr.getStringProperty("ExpectReplyDate") + ".";
-      replyManagerUtils.getNotRepliedForHdr(msgHdr, this.chooseIcon);
+      this.updatingHdrView(true);
+      replyManagerUtils.getNotRepliedForHdr(msgHdr, this.chooseIcon.bind(this));
     } else {
       this.expectReplyCheckbox.setAttribute("checked", "false");
       this.modifyCommand.setAttribute("disabled", "true");
@@ -194,57 +205,58 @@ var replyManagerHdrViewWidget = {
       }
     });
     
-    let nobody = replyManagerHdrViewWidget
+    let nobody = this
                   .replyManagerStrings.getString("msgHdrViewButtonLabelNobody");
-    let person = replyManagerHdrViewWidget
+    let person = this
                   .replyManagerStrings.getString("msgHdrViewButtonLabelPerson");
-    let people = replyManagerHdrViewWidget
+    let people = this
                   .replyManagerStrings.getString("msgHdrViewButtonLabelPeople");
     
     if (allReplied) {
-      replyManagerHdrViewWidget.allRepliedBox.collapsed = false;
-      replyManagerHdrViewWidget.notAllRepliedBox.collapsed = true;
+      this.allRepliedBox.collapsed = false;
+      this.notAllRepliedBox.collapsed = true;
     } else {
       let msgHdr = replyManagerHdrViewListener.displayedMessage;
-      replyManagerHdrViewWidget.allRepliedBox.collapsed = true;
-      replyManagerHdrViewWidget.notAllRepliedBox.collapsed = false;
+      this.allRepliedBox.collapsed = true;
+      this.notAllRepliedBox.collapsed = false;
       
       /* Set the label of this button to the number of people responded */
       if (numResponded == 0) {
-        replyManagerHdrViewWidget.notAllRepliedShowRepliesButton.textContent = nobody;
+        this.notAllRepliedShowRepliesButton.textContent = nobody;
       } else if (numResponded == 1) {
-        replyManagerHdrViewWidget.notAllRepliedShowRepliesButton.textContent = person;
+        this.notAllRepliedShowRepliesButton.textContent = person;
       } else {
-        replyManagerHdrViewWidget.notAllRepliedShowRepliesButton.textContent = "" + numResponded + " " + people;
+        this.notAllRepliedShowRepliesButton.textContent = "" + numResponded + " " + people;
       }
       
       /* Set the label of this button to the number of people not responded */
       let numNotResponded = didReply.length - numResponded;
       if (numNotResponded == 1) {
-        replyManagerHdrViewWidget.showNotRepliedButton.textContent = person;
+        this.showNotRepliedButton.textContent = person;
       } else {
-        replyManagerHdrViewWidget.showNotRepliedButton.textContent = numNotResponded + " " + people;
+        this.showNotRepliedButton.textContent = numNotResponded + " " + people;
       }
       
       if (isPastDeadline(msgHdr.getStringProperty("ExpectReplyDate"))) {
         /* Ok we have passed the deadline for replies so the icon will be set to the cross
          * and hide the text of the other situation. */
-        replyManagerHdrViewWidget.hdrViewIcon.setAttribute("class", "replyManagerHdrViewIcon pastDeadline");
-        replyManagerHdrViewWidget.expectReplyDateLabel.collapsed = true;
-        replyManagerHdrViewWidget.notAllRepliedLabel.collapsed = true;
-        replyManagerHdrViewWidget.pastDeadlineLabel.collapsed = false;
-        replyManagerHdrViewWidget.notAllRepliedShowNotRepliedLabel.collapsed = true;
-        replyManagerHdrViewWidget.pastDeadlineShowNotRepliedLabel.collapsed = false;
+        this.hdrViewIcon.setAttribute("class", "replyManagerHdrViewIcon pastDeadline");
+        this.expectReplyDateLabel.collapsed = true;
+        this.notAllRepliedLabel.collapsed = true;
+        this.pastDeadlineLabel.collapsed = false;
+        this.notAllRepliedShowNotRepliedLabel.collapsed = true;
+        this.pastDeadlineShowNotRepliedLabel.collapsed = false;
       } else {
         /* Set the icon to a alert and hide the past-deadline text.*/
-        replyManagerHdrViewWidget.hdrViewIcon.setAttribute("class", "replyManagerHdrViewIcon notAllReplied");
-        replyManagerHdrViewWidget.expectReplyDateLabel.collapsed = false;
-        replyManagerHdrViewWidget.notAllRepliedLabel.collapsed = false;
-        replyManagerHdrViewWidget.pastDeadlineLabel.collapsed = true;
-        replyManagerHdrViewWidget.notAllRepliedShowNotRepliedLabel.collapsed = false;
-        replyManagerHdrViewWidget.pastDeadlineShowNotRepliedLabel.collapsed = true;
+        this.hdrViewIcon.setAttribute("class", "replyManagerHdrViewIcon notAllReplied");
+        this.expectReplyDateLabel.collapsed = false;
+        this.notAllRepliedLabel.collapsed = false;
+        this.pastDeadlineLabel.collapsed = true;
+        this.notAllRepliedShowNotRepliedLabel.collapsed = false;
+        this.pastDeadlineShowNotRepliedLabel.collapsed = true;
       }
     }
+    this.updateHdrView(false);
   },
 };
 

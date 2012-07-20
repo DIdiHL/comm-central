@@ -104,7 +104,7 @@ var prefObserver = {
 };
 
 function setBoilerplate() {
-  window.openDialog("chrome://messenger/content/replyManagerBoilerplateDialog.xul", "",
+  window.openDialog("chrome://messenger/content/replyManagerBoilerplateDialog.xul", "replyManagerDateDialog",
                     "chrome, dialog").focus();
 }
 
@@ -154,7 +154,7 @@ function toggleExpectReplyCheckbox() {
       inMsgHdr: msgHdr,
       outDate: null
     };
-    window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "",
+    window.openDialog("chrome://messenger/content/replyManagerDateDialog.xul", "replyManagerDateDialog",
                       "chrome, dialog, modal", params);
     if (params.outDate) {
       replyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);

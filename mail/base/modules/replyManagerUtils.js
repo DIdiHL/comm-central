@@ -6,6 +6,7 @@ var EXPORTED_SYMBOLS = ["replyManagerUtils"];
 
 const Cu = Components.utils;
 const Cc = Components.classes;
+const Ci = Components.interfaces;
 
 const gPrefBranch = Cc["@mozilla.org/preferences-service;1"]
                     .getService(Components.interfaces.nsIPrefService)
@@ -83,7 +84,7 @@ var replyManagerUtils = {
    */
   setExpectReplyForHdr: function replyManagerUtils_setExpectReplyForHdr(aMsgHdr, aDateStr) 
   {
-    aMsgHdr.markExpectReply(true, aDateStr);
+    markHdrExpectReply(aMsgHdr, true, aDateStr);
     
     /* This is a workaround to get the above change reflected in the Gloda representation.*/
     aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
@@ -98,7 +99,7 @@ var replyManagerUtils = {
    */
   resetExpectReplyForHdr: function replyManagerUtils_resetExpectReplyForHdr(aMsgHdr) 
   {
-    aMsgHdr.markExpectReply(false, "");
+    markHdrExpectReply(aMsgHdr, false);
     
     /* This is a workaround to get the above change reflected in the Gloda representation.*/
     aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
@@ -136,6 +137,17 @@ var replyManagerUtils = {
     }
     if (gPrefBranch.getBoolPref("mail.replymanager.create_calendar_event_enabled"))
       replyManagerUtils.getNotRepliedForHdr(aMsgHdr, callback);
+  },
+  
+  /* test if this message is expecting replies
+   * @param aMsgHdr is an nsIMsgDBHdr object
+   */
+  isHdrExpectReply: function replyManagerUtils_isHdrExpectReply(aMsgHdr) {
+    let isExpectReply = aMsgHdr.getStringProperty("ExpectReply");
+    if (isExpectReply == "true")
+      return true;
+    else
+      return false;
   },
   
   /**
@@ -202,6 +214,25 @@ var replyManagerUtils = {
   }
 };
 
+/* Mark the given header as expecting reply
+ * @param aMsgHdr is an nsIMsgDBHdr
+ * @param bExpectReply is the boolean value indicating whether
+ *        the message is expecting replies
+ * @param aDate is the expect reply date. It must be provided if
+ *        bExpectReply is true */
+function markHdrExpectReply(aMsgHdr, bExpectReply, aDate) {
+  let database = aMsgHdr.folder.msgDatabase;
+  if (bExpectReply && aDate == null)
+    throw new Error("Error: a date must be provided if bExpectReply is true");
+  if (aMsgHdr.folder instanceof Ci.nsIMsgImapMailFolder) {
+    database.setAttributeOnPendingHdr(aMsgHdr, "ExpectReply", bExpectReply);
+    if (bExpectReply)
+      database.setAttributeOnPendingHdr(aMsgHdr, "ExpectReplyDate", aDate);
+  }
+  aMsgHdr.setStringProperty("ExpectReply", bExpectReply);
+  if (bExpectReply)
+    aMsgHdr.setStringProperty("ExpectReplyDate", aDate);
+}
 
 function getNotRepliedRecipients(recipientsList, didReply) {
   let recipients = [recipient for each ([i, recipient] in Iterator(recipientsList)) if (!didReply[i])].join(",");
@@ -246,5 +277,4 @@ var isExpectReply = {
     yield Gloda.kWorkDone;
   }
 };
-
 isExpectReply.init();

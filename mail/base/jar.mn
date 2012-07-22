@@ -7,6 +7,7 @@ messenger.jar:
 % overlay chrome://editor/content/EdSpellCheck.xul chrome://messenger/content/EdSpellCheckOverlay.xul
 % overlay chrome://messenger/content/msgHdrViewOverlay.xul chrome://messenger/content/replyManagerMsgHdrViewOverlay.xul
 % overlay chrome://messenger/content/mailWindowOverlay.xul chrome://messenger/content/replyManagerMailWindowOverlay.xul
+% overlay chrome://messenger/content/messengercompose/messengercompose.xul chrome://messenger/content/replyManagerComposeOverlay.xul
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/content/messenger.css
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/
 % style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/addressbook/addressbook.css
@@ -91,6 +92,8 @@ messenger.jar:
     content/messenger/replyManagerDateDialog.xul    (content/replyManagerDateDialog.xul)
     content/messenger/replyManagerShowAddressDialog.xul (content/replyManagerShowAddressDialog.xul)
     content/messenger/replyManagerBoilerplateDialog.xul (content/replyManagerBoilerplateDialog.xul)
+    content/messenger/replyManagerComposeOverlay.xul (content/replyManagerComposeOverlay.xul)
+    content/messenger/replyManagerComposeOverlay.js (content/replyManagerComposeOverlay.js)
     content/messenger/replyManager.css              (content/replyManager.css)
 #ifdef XP_MACOSX
     content/messenger/macMenuOverlay.xul            (content/macMenuOverlay.xul)

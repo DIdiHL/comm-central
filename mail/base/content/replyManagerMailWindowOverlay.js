@@ -124,7 +124,7 @@ function deployMenuitems() {
   /* Somehow disabling the menuitem directly doesn't work so I disable the
    * associated command instead. */
   let modifyCommand = document.getElementById("cmd_modifyExpectReply");
-  if (msgHdr.isExpectReply) {
+  if (replyManagerUtils.isHdrExpectReply(msgHdr)) {
     expectReplyCheckbox.setAttribute("checked", "true");
     modifyCommand.setAttribute("disabled", "false");
   } else {
@@ -204,7 +204,7 @@ var replyManagerMailListener = {
       onItemsRemoved: function() {},
       onQueryCompleted: function(aCollection) {
         for each (let [i, msg] in Iterator(aCollection.items)) {
-          if (msg.folderMessage.isExpectReply) {
+          if (replyManagerUtils.isHdrExpectReply(msg.folderMessage)) {
             // Update the calendar event
             replyManagerUtils.updateExpectReplyForHdr(msg.folderMessage);
           }
@@ -237,7 +237,7 @@ var replyManagerMailListener = {
     let mailEnumerator = aItems.enumerate();
     while (mailEnumerator.hasMoreElements()) {
       let msg = mailEnumerator.getNext();
-      if (msg.isExpectReply) {
+      if (replyManagerUtils.isHdrExpectReply(msg)) {
         replyManagerUtils.resetExpectReplyForHdr(msg);
       }
     }

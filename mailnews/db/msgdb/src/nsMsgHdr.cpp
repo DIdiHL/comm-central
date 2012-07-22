@@ -244,30 +244,6 @@ NS_IMETHODIMP nsMsgHdr::MarkFlagged(bool bFlagged)
   return rv;
 }
 
-NS_IMETHODIMP nsMsgHdr::MarkExpectReply(bool bExpectReply, const char *expectReplyDate)
-{
-  nsresult rv = NS_OK;
-  if (!m_mdb || !m_mdbRow)
-    return NS_ERROR_NULL_POINTER;
-  /* If the we are saving to an IMAP folder, we don't have the message header
-   * in local imap mail database at this moment. We need to use
-   * SetAttributeOnPendingHdr.*/
-  //SetAttributeOnPending method only accepts string values
-  nsCString bExpectReplyStr;
-  bExpectReplyStr = (bExpectReply) ? "true" : "false";
-  rv = m_mdb->SetAttributeOnPendingHdr(this, "ExpectReply", bExpectReplyStr.get());
-  rv = m_mdb->SetAttributeOnPendingHdr(this, "ExpectReplyDate", expectReplyDate);
-  if (NS_SUCCEEDED(rv))
-    /* This is indeed an IMAP folder so return NS_OK.*/
-    return NS_OK;
-  else
-  {
-    /* This is a nsIMsgDatabase, use SetStringProperty instead.*/
-    SetStringProperty("ExpectReply", bExpectReplyStr.get());
-    return SetStringProperty("ExpectReplyDate", expectReplyDate);
-  }
-}
-
 NS_IMETHODIMP nsMsgHdr::GetProperty(const char *propertyName, nsAString &resultProperty)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
@@ -952,19 +928,6 @@ NS_IMETHODIMP nsMsgHdr::GetIsFlagged(bool *isFlagged)
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
   *isFlagged = !!(m_flags & nsMsgMessageFlags::Marked);
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgHdr::GetIsExpectReply(bool *isExpectReply)
-{
-  nsCString propertyValue;
-  nsresult rv;
-  rv = GetStringProperty("ExpectReply", getter_Copies(propertyValue));
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (strcmp(propertyValue.get(), "true") == 0)
-    *isExpectReply = true;
-  else
-    *isExpectReply = false;
   return NS_OK;
 }
 

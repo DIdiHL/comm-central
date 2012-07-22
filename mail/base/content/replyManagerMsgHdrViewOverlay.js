@@ -172,7 +172,7 @@ var replyManagerHdrViewWidget = {
     let msgHdr = replyManagerHdrViewListener.displayedMessage;
     this.expectReplyDateLabel.textContent = "";
     
-    if (msgHdr.isExpectReply) {
+    if (replyManagerUtils.isHdrExpectReply(msgHdr)) {
       this.expectReplyCheckbox.setAttribute("checked", "true");
       this.modifyCommand.disabled = false;
       this.expectReplyDateLabel.textContent += msgHdr.getStringProperty("ExpectReplyDate") + ".";

@@ -1,4 +1,8 @@
 <?xml version="1.0"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
 
 <!DOCTYPE bindings [
 <!ENTITY % notificationDTD SYSTEM "chrome://global/locale/notification.dtd">
@@ -1089,7 +1093,7 @@
             var link = document.createElement("label");
             link.className = "text-link";
             link.setAttribute("value", this._stringBundle.GetStringFromName(type + ".learnMore"));
-            link.setAttribute("href", this._urlFormatter.formatURLPref("browser.geolocation.warning.infoURL"));
+            link.setAttribute("href", this._urlFormatter.formatURLPref("browser." + type + ".warning.infoURL"));
             document.getAnonymousElementByAttribute(box, "anonid", "messageText").appendChild(link);
           ]]>
         </body>

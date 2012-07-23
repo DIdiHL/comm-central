@@ -1,44 +1,6 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is JSIRC Library
- *
- * The Initial Developer of the Original Code is New Dimensions Consulting, Inc.
- * Portions created by the Initial Developer are Copyright (C) 1999
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Robert Ginda, <rginda@ndcico.com>, original author
- *   Peter Van der Beken, <peter.vanderbeken@pandora.be>, necko-only version
- *   Stephen Clavering <mozilla@clav.me.uk>, extensively rewritten for
- *     MSNMessenger (http://msnmsgr.mozdev.org/)
- *   Benoît Renard <benoit@gawab.com>, MSNMessenger
- *   Patrick Cloke, <clokep@gmail.com>, updated, extended and generalized for
- *     Instantbird (http://www.instantbird.com)
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /*
  * Combines a lot of the Mozilla networking interfaces into a sane interface for
@@ -57,7 +19,6 @@
  *   .disconnect()
  *   .listen(port)
  *   .send(String data)
- *   .isAlive()
  *   .startTLS()
  * High-level properties:
  *   XXX Need to include properties here
@@ -166,6 +127,8 @@ const Socket = {
         // Add a URI scheme since, by default, some protocols (i.e. IRC) don't
         // have a URI scheme before the host.
         let uri = Services.io.newURI("http://" + this.host, null, null);
+        // This will return null when the result is known immediately and
+        // the callback will just be dispatched to the current thread.
         this._proxyCancel = proxyService.asyncResolve(uri, this.proxyFlags, this);
       } catch(e) {
         Cu.reportError(e);
@@ -194,7 +157,8 @@ const Socket = {
     }
 
     if ("_proxyCancel" in this) {
-      this._proxyCancel.cancel(Cr.NS_ERROR_ABORT); // Has to give a failure code
+      if (this._proxyCancel)
+        this._proxyCancel.cancel(Cr.NS_ERROR_ABORT); // Has to give a failure code
       delete this._proxyCancel;
     }
   },
@@ -261,11 +225,7 @@ const Socket = {
     }
   },
 
-  isAlive: function() {
-    if (!this.transport)
-      return false;
-    return this.transport.isAlive();
-  },
+  isConnected: false,
 
   startTLS: function() {
     this.transport.securityInfo.QueryInterface(Ci.nsISSLSocketControl).StartTLS();
@@ -280,6 +240,11 @@ const Socket = {
    * nsIProtocolProxyCallback methods
    */
   onProxyAvailable: function(aRequest, aURI, aProxyInfo, aStatus) {
+    if (!("_proxyCancel" in this)) {
+      this.log("onProxyAvailable called, but disconnect() was called before.");
+      return;
+    }
+
     if (aProxyInfo) {
       this.log("using " + aProxyInfo.type + " proxy: " +
                aProxyInfo.host + ":" + aProxyInfo.port);
@@ -302,6 +267,7 @@ const Socket = {
     this._resetBuffers();
     this._openStreams();
 
+    this.isConnected = true;
     this.onConnectionHeard();
     this.stopListening();
   },
@@ -367,6 +333,7 @@ const Socket = {
   // Called to signify the end of an asynchronous request.
   onStopRequest: function(aRequest, aContext, aStatus) {
     this.log("onStopRequest (" + aStatus + ")");
+    delete this.isConnected;
     if (aStatus == NS_ERROR_NET_RESET)
       this.onConnectionReset();
     else if (aStatus == NS_ERROR_NET_TIMEOUT)
@@ -404,6 +371,7 @@ const Socket = {
     this.log("onTransportStatus(" + (status || ("0x" + aStatus.toString(16))) +")");
 
     if (status == "STATUS_CONNECTED_TO") {
+      this.isConnected = true;
       // Notify that the connection has been established.
       this.onConnection();
     }

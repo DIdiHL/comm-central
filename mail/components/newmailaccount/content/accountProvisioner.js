@@ -1,42 +1,6 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Account Provisioner Code.
- *
- * The Initial Developer of the Original Code is
- * The Mozilla Foundation.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- * Blake Winton <bwinton@mozillamessaging.com>
- * Bryan Clark <clarkbw@mozillamessaging.com>
- * Jonathan Protzenko <jprotzenko@mozilla.com>
- * Mike Conley <mconley@mozilla.com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 let Cu = Components.utils;
 let Cc = Components.classes;
@@ -114,7 +78,6 @@ var EmailAccountProvisioner = {
   NewComposeMessage: window.arguments[0].NewComposeMessage,
   openAddonsMgr: window.arguments[0].openAddonsMgr,
   msgWindow: window.arguments[0].msgWindow,
-  okCallback: window.arguments[0].okCallback,
 
   get someProvidersChecked() {
     return this._someProvidersChecked;
@@ -141,16 +104,10 @@ var EmailAccountProvisioner = {
   },
 
   /**
-   * Returns the languages that the user currently accepts.
+   * Returns the language that the user currently accepts.
    */
-  get userLanguages() {
-    let userLanguages =
-      Services.prefs.getComplexValue("intl.accept_languages",
-                                     Ci.nsIPrefLocalizedString)
-                                       .data
-                                       .toLowerCase()
-                                       .split(",");
-    return $.map(userLanguages, $.trim);
+  get userLanguage() {
+    return Services.prefs.getCharPref("general.useragent.locale");
   },
 
   /**
@@ -170,8 +127,10 @@ var EmailAccountProvisioner = {
   searchEnabled: function EAP_searchEnabled(aVal) {
     if (aVal) {
       $("#name").removeAttr("disabled");
+      $(".providerCheckbox").removeAttr("disabled");
     } else {
       $("#name").attr("disabled", "true");
+      $(".providerCheckbox").attr("disabled", "true");
     }
     this.searchButtonEnabled(aVal);
   },
@@ -307,16 +266,9 @@ var EmailAccountProvisioner = {
     $("button.existing").click(function() {
       EmailAccountProvisioner.saveName();
       EmailAccountProvisioner.NewMailAccount(EmailAccountProvisioner.msgWindow,
-                                             EmailAccountProvisioner.okCallback,
+                                             null,
                                              window.arguments[0]);
-      // Set the callback to null, so that we don't call it.
-      EmailAccountProvisioner.okCallback = null;
       window.close();
-    });
-
-    $(window).unload(function() {
-      if (EmailAccountProvisioner.okCallback)
-        EmailAccountProvisioner.okCallback();
     });
 
     // Handle Ctrl-W and Esc
@@ -370,7 +322,7 @@ var EmailAccountProvisioner = {
       }
     });
 
-    if (window.arguments[0].search_engine || window.arguments[0].success) {
+    if (window.arguments[0].success) {
       // Show the success page which lets a user compose mail, find add-ons,
       // set a signature, etc.
       gLog.info("Looks like we just finished ordering an address - showing the success page...");
@@ -415,7 +367,8 @@ var EmailAccountProvisioner = {
       dataType: 'json',
       data: {"first_name": firstname,
              "last_name": lastname,
-             "providers": providerList},
+             "providers": providerList,
+             "version": 2},
       timeout: CONNECTION_TIMEOUT,
       success: EmailAccountProvisioner.onSearchResults})
       .error(EmailAccountProvisioner.showSearchError)
@@ -510,7 +463,8 @@ var EmailAccountProvisioner = {
         // Ugh, we couldn't get the JSON file.  Maybe we're not online.  Or maybe
         // the server is down, or the file isn't being served.  Regardless, if
         // we get here, none of this stuff is going to work.
-        EmailAccountProvisioner._loadProviderRetryId = window.setTimeout(EmailAccountProvisioner.tryToPopulateProviderList,
+        EmailAccountProvisioner._loadProviderRetryId = window.setTimeout(EmailAccountProvisioner.tryToPopulateProviderList
+                                                                                                .bind(self),
                                                                          RETRY_TIMEOUT);
         EmailAccountProvisioner._loadingProviders = false;
         EmailAccountProvisioner.beOffline();
@@ -572,21 +526,20 @@ var EmailAccountProvisioner = {
       EmailAccountProvisioner.providers[provider.id] = provider;
 
       // Let's go through the array of languages for this provider, and
-      // check to see if at least one of them matches one of the accepted
-      // languages for this user profile.  If so, supportsSomeUserLang becomes
-      // true, and we'll show / select this provider by default.
+      // check to see if at least one of them matches general.useragent.locale.
+      // If so, we'll show / select this provider by default.
       let supportsSomeUserLang = provider
                                  .languages
                                  .some(function (x) {
-                                   return EmailAccountProvisioner
-                                          .userLanguages
-                                          .indexOf(x.toLowerCase()) >= 0
+                                   return x == "*" ||
+                                          x == EmailAccountProvisioner.userLanguage
                                  });
 
       let checkboxId = provider.id + "-check";
 
       let providerCheckbox = $('<input type="checkbox" />')
                              .val(provider.id)
+                             .addClass("providerCheckbox")
                              .attr("id", checkboxId);
 
       let providerEntry = $('<li class="provider" />')
@@ -630,6 +583,7 @@ var EmailAccountProvisioner = {
     EmailAccountProvisioner.populateTermsAndPrivacyLinks();
     EmailAccountProvisioner.beOnline();
     EmailAccountProvisioner._loadedProviders = true;
+    EmailAccountProvisioner.onSearchInputOrProvidersChanged();
   },
 
   /**
@@ -795,8 +749,20 @@ var EmailAccountProvisioner = {
         let tmplData = {
           address: address,
         };
+        if (address.address)
+          tmplData.address = address.address;
 
-        if (provider.price && provider.price != "0")
+        // Figure out the price to display on the address button, as so:
+        // If there is a per-address price of > 0, use that.
+        // Otherwise, if there is a per-address price of 0, use "Free",
+        // Otherwise, there's no per-address price,
+        //   so if the provider's price is > 0, use that.
+        //   Or if the provider's price is 0, use "Free".
+        if (address.price && address.price != "0")
+          tmplData.priceStr = stringBundle.get("price", [address.price])
+        else if (address.price && address.price == "0")
+          tmplData.priceStr = stringBundle.get("free");
+        else if (provider.price && provider.price != "0")
           tmplData.priceStr = stringBundle.get("price", [provider.price])
         else
           tmplData.priceStr = stringBundle.get("free");

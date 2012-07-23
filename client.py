@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 
 # Warning, this file must be compatible with Python 2.4, for our
 # various tools, such as http://mxr.mozilla.org/ see-also: Bug 601207
@@ -218,10 +222,11 @@ def switch_mozilla_repo():
 
     import ConfigParser, re
     config = ConfigParser.ConfigParser()
-    config.read([os.path.join(mozilla_path, '.hg', 'hgrc')])
+    config_path = os.path.join(mozilla_path, '.hg', 'hgrc')
+    config.read([config_path])
     if not config.has_option('paths', 'default'):
         # Abort, not to get into a possibly inconsistent state.
-        sys.exit("Error: default path in mozilla/.hg/hgrc is undefined!")
+        sys.exit("Error: default path in %s is undefined!" % config_path)
 
     # Compile the Mozilla repository regex.
     moz_old_regex = re.compile(SWITCH_MOZILLA_REPO_REGEXP, re.I)
@@ -397,17 +402,17 @@ o.add_option("--skip-comm", dest="skip_comm",
              help="Skip pulling the comm (Calendar/Mail/Suite) repository.")
 o.add_option("--comm-rev", dest="comm_rev",
              default=None,
-             help="Revision of comm (Calendar/Mail/Suite) repository to update to. Default: \"" + get_DEFAULT_tag('COMM_REV') + "\"")
+             help="Revision of comm (Calendar/Mail/Suite) repository to update to. If not present, COMM_REV from the environment will be used. If that doesn't exist the default is: \"" + get_DEFAULT_tag('COMM_REV') + "\"")
 
 o.add_option("-z", "--mozilla-repo", dest="mozilla_repo",
-             default=DEFAULTS['MOZILLA_REPO'],
+             default=None,
              help="URL of Mozilla repository to pull from (default: use hg default in mozilla/.hg/hgrc; or if that file doesn't exist, use \"" + DEFAULTS['MOZILLA_REPO'] + "\".)")
 o.add_option("--skip-mozilla", dest="skip_mozilla",
              action="store_true", default=False,
              help="Skip pulling the Mozilla repository.")
 o.add_option("--mozilla-rev", dest="mozilla_rev",
              default=None,
-             help="Revision of Mozilla repository to update to. Default: \"" + get_DEFAULT_tag('MOZILLA_REV') + "\"")
+             help="Revision of Mozilla repository to update to. If not present, MOZILLA_REV from the environment will be used. If that doesn't exist the default is: \"" + get_DEFAULT_tag('MOZILLA_REV') + "\"")
 o.add_option("--known-good", dest="known_good",
              action="store_true", default=False,
              help="Use the last known-good Mozilla repository revision.")
@@ -498,19 +503,44 @@ def fixup_comm_repo_options(options):
         sys.exit(2)
 
     if options.comm_rev is None:
-        options.comm_rev = get_DEFAULT_tag("COMM_REV")
+        # If we weren't passed an explicit rev, try to find it from the
+        # environment. If that doesn't exist or is empty, grab the default.
+        envRev = os.environ.get("COMM_REV")
+        if envRev:
+            print "Using COMM_REV from environment (%s)" % envRev
+            options.comm_rev = envRev
+        else:
+            options.comm_rev = get_DEFAULT_tag("COMM_REV")
 
 def fixup_mozilla_repo_options(options):
     """Handle special case: initial checkout of Mozilla.
 
     See fixup_comm_repo_options().
     """
-    if options.mozilla_repo is None and \
-            not os.path.exists(os.path.join(topsrcdir, 'mozilla')):
-        options.mozilla_repo = DEFAULTS['MOZILLA_REPO']
-    
+    if options.mozilla_repo is None:
+        if not os.path.exists(os.path.join(topsrcdir, 'mozilla')):
+            options.mozilla_repo = DEFAULTS['MOZILLA_REPO']
+        else:
+            # Fallback to using .hgrc as hgtool/share needs the repo
+            import ConfigParser, re
+            config = ConfigParser.ConfigParser()
+            config_path = os.path.join(topsrcdir, 'mozilla', '.hg', 'hgrc')
+            config.read([config_path])
+            if not config.has_option('paths', 'default'):
+                # Abort, not to get into a possibly inconsistent state.
+                sys.exit("Error: default path in %s is undefined!" % config_path)
+
+            options.mozilla_repo = config.get('paths', 'default')
+
     if options.mozilla_rev is None:
-        options.mozilla_rev = get_DEFAULT_tag("MOZILLA_REV")
+        # If we weren't passed an explicit rev, try to find it from the
+        # environment. If that doesn't exist or is empty, grab the default.
+        envRev = os.environ.get("MOZILLA_REV")
+        if envRev:
+            print "Using MOZILLA_REV from environment (%s)" % envRev
+            options.mozilla_rev = envRev
+        else:
+            options.mozilla_rev = get_DEFAULT_tag("MOZILLA_REV")
 
 def fixup_chatzilla_repo_options(options):
     """Handle special case: initial hg checkout of Chatzilla.

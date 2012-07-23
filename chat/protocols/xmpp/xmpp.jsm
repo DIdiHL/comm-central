@@ -1,39 +1,6 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Instantbird.
- *
- * The Initial Developer of the Original Code is
- * Varuna JAYASIRI <vpjayasiri@gmail.com>.
- * Portions created by the Initial Developer are Copyright (C) 2011
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Florian Quèze <florian@queze.net>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const EXPORTED_SYMBOLS = [
   "XMPPConversationPrototype",
@@ -64,6 +31,9 @@ XPCOMUtils.defineLazyGetter(this, "NetUtil", function() {
   Components.utils.import("resource://gre/modules/NetUtil.jsm");
   return NetUtil;
 });
+XPCOMUtils.defineLazyServiceGetter(this, "imgTools",
+                                   "@mozilla.org/image/tools;1",
+                                   "imgITools");
 
 initLogModule("xmpp", this);
 
@@ -376,6 +346,7 @@ const XMPPAccountBuddyPrototype = {
     this._account._connection.sendStanza(s);
   },
 
+  _photoHash: null,
   _saveIcon: function(aPhotoNode) {
     let type = aPhotoNode.getElement(["TYPE"]).innerText;
     const kExt = {"image/gif": "gif", "image/jpeg": "jpg", "image/png": "png"};
@@ -384,11 +355,21 @@ const XMPPAccountBuddyPrototype = {
 
     let data = aPhotoNode.getElement(["BINVAL"]).innerText;
     let content = atob(data.replace(/[^A-Za-z0-9\+\/\=]/g, ""));
+
+    // Store a sha1 hash of the photo we have just received.
+    let ch = Cc["@mozilla.org/security/hash;1"].createInstance(Ci.nsICryptoHash);
+    ch.init(ch.SHA1);
+    let dataArray = [content.charCodeAt(i) for (i in content)];
+    ch.update(dataArray, dataArray.length);
+    let hash = ch.finish(false);
+    function toHexString(charCode) ("0" + charCode.toString(16)).slice(-2)
+    this._photoHash = [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
+
     let istream = Cc["@mozilla.org/io/string-input-stream;1"]
                   .createInstance(Ci.nsIStringInputStream);
     istream.setData(content, content.length);
 
-    let fileName = this.normalizedName + "." + kExt[type];
+    let fileName = this._photoHash + "." + kExt[type];
     let file = FileUtils.getFile("ProfD", ["icons",
                                            this.account.protocol.normalizedName,
                                            this.account.normalizedName,
@@ -463,6 +444,17 @@ const XMPPAccountBuddyPrototype = {
         priority: priority,
         stanza: aStanza
       };
+    }
+
+    let photo = aStanza.getElement(["x", "photo"]);
+    if (photo && photo.uri == Stanza.NS.vcard_update) {
+      let hash = photo.innerText;
+      if (hash && hash != this._photoHash)
+        this._account._requestVCard(this.normalizedName);
+      else if (!hash && this._photoHash) {
+        delete this._photoHash;
+        this.buddyIconFilename = "";
+      }
     }
 
     for (let r in this._resources) {
@@ -593,11 +585,14 @@ const XMPPAccountPrototype = {
           this._sendPresence();
       }).bind(this));
     }
-
-    if (aTopic != "status-changed")
-      return;
-
-    this._sendPresence();
+    else if (aTopic == "status-changed")
+      this._sendPresence();
+    else if (aTopic == "user-icon-changed") {
+      delete this._cachedUserIcon;
+      this._sendVCard();
+    }
+    else if (aTopic == "user-display-name-changed")
+      this._sendVCard();
   },
 
   /* GenericAccountPrototype events */
@@ -891,11 +886,8 @@ const XMPPAccountPrototype = {
     let subscription =  "";
     if ("subscription" in aItem.attributes)
       subscription = aItem.attributes["subscription"];
-    if (subscription == "both" || subscription == "to") {
-      let s = Stanza.iq("get", null, jid,
-                        Stanza.node("vCard", Stanza.NS.vcard));
-      this._connection.sendStanza(s, this.onVCard, this);
-    }
+    if (subscription == "both" || subscription == "to")
+      this._requestVCard(jid);
     else if (subscription == "remove") {
       this._forgetRosterItem(jid);
       return "";
@@ -939,6 +931,11 @@ const XMPPAccountPrototype = {
     Services.contacts.accountBuddyRemoved(this._buddies[aJID]);
     delete this._buddies[aJID];
   },
+  _requestVCard: function(aJID) {
+    let s = Stanza.iq("get", null, aJID,
+                      Stanza.node("vCard", Stanza.NS.vcard));
+    this._connection.sendStanza(s, this.onVCard, this);
+  },
 
   /* When the roster is received */
   onRoster: function(aStanza) {
@@ -966,6 +963,7 @@ const XMPPAccountPrototype = {
         b.setStatus(Ci.imIStatusInfo.STATUS_OFFLINE, "");
     }
     this.reportConnected();
+    this._sendVCard();
   },
 
   /* Public methods */
@@ -1033,6 +1031,11 @@ const XMPPAccountPrototype = {
     this._connection.disconnect();
     delete this._connection;
 
+    // We won't receive "user-icon-changed" notifications while the
+    // account isn't connected, so clear the cache to avoid keeping an
+    // obsolete icon.
+    delete this._cachedUserIcon;
+
     this.reportDisconnected();
   },
 
@@ -1062,5 +1065,78 @@ const XMPPAccountPrototype = {
       children.push(Stanza.node("query", Stanza.NS.last, {seconds: time}));
     }
     this._connection.sendStanza(Stanza.presence({"xml:lang": "en"}, children));
+  },
+
+  _cachingUserIcon: false,
+  _cacheUserIcon: function() {
+    let userIcon = this.imAccount.statusInfo.getUserIcon();
+    if (!userIcon) {
+      this._cachedUserIcon = null;
+      this._sendVCard();
+      return;
+    }
+
+    this._cachingUserIcon = true;
+    let channel = Services.io.newChannelFromURI(userIcon);
+    NetUtil.asyncFetch(channel, (function(inputStream, resultCode) {
+      if (!Components.isSuccessCode(resultCode))
+        return;
+      try {
+        let readImage = {value: null};
+        let type = channel.contentType;
+        imgTools.decodeImageData(inputStream, type, readImage);
+        readImage = readImage.value;
+        let scaledImage;
+        if (readImage.width <= 96 && readImage.height <= 96)
+          scaledImage = imgTools.encodeImage(readImage, type);
+        else {
+          if (type != "image/jpeg")
+            type = "image/png";
+          scaledImage = imgTools.encodeScaledImage(readImage, type, 64, 64);
+        }
+
+        let bstream = Components.classes["@mozilla.org/binaryinputstream;1"].
+                      createInstance(Ci.nsIBinaryInputStream);
+        bstream.setInputStream(scaledImage);
+
+        let data = bstream.readBytes(bstream.available());
+        this._cachedUserIcon = {
+          type: type,
+          binval: btoa(data).replace(/.{74}/g, "$&\n")
+        };
+      } catch (e) {
+        Components.utils.reportError(e);
+        this._cachedUserIcon = null;
+      }
+      delete this._cachingUserIcon;
+      this._sendVCard();
+    }).bind(this));
+  },
+  _sendVCard: function() {
+    if (!this._connection)
+      return;
+
+    if (!this.hasOwnProperty("_cachedUserIcon")) {
+      if (!this._cachingUserIcon)
+        this._cacheUserIcon();
+      return;
+    }
+
+    let vCardEntries = [];
+    let displayName = this.imAccount.statusInfo.displayName;
+    if (displayName)
+      vCardEntries.push(Stanza.node("FN", Stanza.NS.vcard, null, displayName));
+    if (this._cachedUserIcon) {
+      let photoChildren = [
+        Stanza.node("TYPE", Stanza.NS.vcard, null, this._cachedUserIcon.type),
+        Stanza.node("BINVAL", Stanza.NS.vcard, null, this._cachedUserIcon.binval)
+      ];
+      vCardEntries.push(Stanza.node("PHOTO", Stanza.NS.vcard, null,
+                                    photoChildren));
+    }
+    let s = Stanza.iq("set", null, null,
+                      Stanza.node("vCard", Stanza.NS.vcard, null, vCardEntries));
+
+    this._connection.sendStanza(s);
   }
 };

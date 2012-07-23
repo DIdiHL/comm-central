@@ -1,42 +1,7 @@
-# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is Thunderbird RSS Utils
-#
-# The Initial Developer of the Original Code is
-# The Mozilla Foundation.
-# Portions created by the Initial Developer are Copyright (C) 2005
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#  Myk Melez <myk@mozilla.org>
-#  Scott MacGregor <mscott@mozilla.org>
-#  Ian Neal <iann_bugzilla@blueyonder.co.uk>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK ******
+/* -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -80,6 +45,8 @@ var FeedUtils = {
   get DC_LASTMODIFIED() { return this.rdf.GetResource(this.DC_NS + "lastModified") },
   get DC_IDENTIFIER()   { return this.rdf.GetResource(this.DC_NS + "identifier") },
 
+  MRSS_NS: "http://search.yahoo.com/mrss/",
+
   FZ_NS: "urn:forumzilla:",
   FZ_ITEM_NS: "urn:feeditem:",
   get FZ_ROOT()       { return this.rdf.GetResource(this.FZ_NS + "root") },
@@ -116,6 +83,78 @@ var FeedUtils = {
   kNewsBlogFeedIsBusy: 3,
   // There are no new articles for this feed
   kNewsBlogNoNewItems: 4,
+
+/**
+ * Get all rss account servers rootFolders.
+ * 
+ * @return array of nsIMsgIncomingServer (empty array if none).
+ */
+  getAllRssServerRootFolders: function() {
+    let rssRootFolders = [];
+    let allServers = MailServices.accounts.allServers;
+    for (let i = 0; i < allServers.Count(); i++)
+    {
+      let server = allServers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
+      if (server && server.type == "rss")
+        rssRootFolders.push(server.rootFolder);
+    }
+
+    // By default, Tb sorts by hostname, ie Feeds, Feeds-1, and not by alpha
+    // prettyName.  Do the same as a stock install to match folderpane order.
+    rssRootFolders.sort(function(a, b) { return a.hostname > b.hostname });
+
+    return rssRootFolders;
+  },
+
+/**
+ * Create rss account.
+ * 
+ * @param  string [aName] - optional account name to override default.
+ * @return nsIMsgAccount.
+ */
+  createRssAccount: function(aName) {
+    let userName = "nobody";
+    let hostName = "Feeds";
+    let hostNamePref = hostName;
+    let server;
+    let serverType = "rss";
+    let defaultName = FeedUtils.strings.GetStringFromName("feeds-accountname");
+    let i = 2;
+    while (MailServices.accounts.findRealServer(userName, hostName, serverType, 0))
+      // If "Feeds" exists, try "Feeds-2", then "Feeds-3", etc.
+      hostName = hostNamePref + "-" + i++;
+
+    server = MailServices.accounts.createIncomingServer(userName, hostName, serverType);
+    server.biffMinutes = FeedUtils.kBiffMinutesDefault;
+    server.prettyName = aName ? aName : defaultName;
+    server.valid = true;
+    let account = MailServices.accounts.createAccount();
+    account.incomingServer = server;
+
+    // Create "Local Folders" if none exist yet as it's guaranteed that
+    // those exist when any account exists.
+    let localFolders;
+    try {
+      localFolders = MailServices.accounts.localFoldersServer;
+    }
+    catch (ex) {}
+
+    if (!localFolders)
+      MailServices.accounts.createLocalMailAccount();
+
+    // Save new accounts in case of a crash.
+    try {
+      MailServices.accounts.saveAccountInfo();
+    }
+    catch (ex) {
+      this.log.error("FeedUtils.createRssAccount: error on saveAccountInfo - " + ex);
+    }
+
+    this.log.debug("FeedUtils.createRssAccount: " +
+                   account.incomingServer.rootFolder.prettyName);
+
+    return account;
+  },
 
 /**
  * Helper routine that checks our subscriptions list array and returns
@@ -257,19 +296,19 @@ var FeedUtils = {
               {
                 ds.Change(id, this.FZ_DESTFOLDER, node, resource);
                 this.log.debug("getFeedUrlsInFolder: sync update folder:url - " +
-                               aFolder.filePath.path+" : "+url);
+                               aFolder.filePath.path + " : " + url);
               }
               else
               {
                 this.addFeed(url, null, aFolder);
                 this.log.debug("getFeedUrlsInFolder: sync add folder:url - " +
-                               aFolder.filePath.path+" : "+url);
+                               aFolder.filePath.path + " : " + url);
               }
             }
             catch (ex) {
               this.log.debug("getFeedUrlsInFolder: error - " + ex);
               this.log.debug("getFeedUrlsInFolder: sync failed for folder:url - " +
-                             aFolder.filePath.path+" : "+url);
+                             aFolder.filePath.path + " : " + url);
             }
         }, this);
         ds.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();
@@ -311,7 +350,7 @@ var FeedUtils = {
     {
       aFolder.setStringProperty("feedUrl", feedurls);
       this.log.debug("getFeedUrlsInFolder: got urls from db, folder:feedUrl - " +
-                     aFolder.filePath.path+" : "+feedurls);
+                     aFolder.filePath.path + " : " + feedurls);
     }
     else
       this.log.trace("getFeedUrlsInFolder: no urls from db, folder - " +
@@ -508,24 +547,24 @@ var FeedUtils = {
       // The url is the data.
       uri.spec = dt.mozGetDataAt(types[0], 0);
       validUri = this.isValidScheme(uri);
-      this.log.trace("getFeedUriFromDataTransfer: dropEffect:type:value - "+
-                     dt.dropEffect+" : "+types[0]+" : "+uri.spec);
+      this.log.trace("getFeedUriFromDataTransfer: dropEffect:type:value - " +
+                     dt.dropEffect + " : " + types[0] + " : " + uri.spec);
     }
     else if (dt.getData(types[1]))
     {
       // The url is the first part of the data, the second part is random.
       uri.spec = dt.mozGetDataAt(types[1], 0).split("\n")[0];
       validUri = this.isValidScheme(uri);
-      this.log.trace("getFeedUriFromDataTransfer: dropEffect:type:value - "+
-                     dt.dropEffect+" : "+types[0]+" : "+uri.spec);
+      this.log.trace("getFeedUriFromDataTransfer: dropEffect:type:value - " +
+                     dt.dropEffect + " : " + types[0] + " : " + uri.spec);
     }
     else
     {
       // Go through the types and see if there's a url; get the first one.
       for (let i = 0; i < dt.types.length; i++) {
         let spec = dt.mozGetDataAt(dt.types[i], 0);
-        this.log.trace("getFeedUriFromDataTransfer: dropEffect:index:type:value - "+
-                       dt.dropEffect+" : "+i+" : "+dt.types[i]+" : "+spec);
+        this.log.trace("getFeedUriFromDataTransfer: dropEffect:index:type:value - " +
+                       dt.dropEffect + " : " + i + " : " + dt.types[i] + " : "+spec);
         try {
           uri.spec = spec;
           validUri = this.isValidScheme(uri);
@@ -639,7 +678,7 @@ var FeedUtils = {
       FeedUtils.log.debug("downloaded: "+
                           (this.mSubscribeMode ? "Subscribe " : "Update ") +
                           "errorCode:feedName:folder - " +
-                          aErrorCode+" : "+feed.name+" : "+location);
+                          aErrorCode + " : " + feed.name + " : " + location);
       if (this.mSubscribeMode)
       {
         if (aErrorCode == FeedUtils.kNewsBlogSuccess)
@@ -661,7 +700,8 @@ var FeedUtils = {
           let subscriptionsWindow =
               Services.wm.getMostRecentWindow("Mail:News-BlogSubscriptions");
           if (subscriptionsWindow)
-            subscriptionsWindow.gFeedSubscriptionsWindow.refreshSubscriptionView();
+            subscriptionsWindow.FeedSubscriptions.
+                                FolderListener.folderAdded(feed.folder);
         }
         else
         {
@@ -701,7 +741,7 @@ var FeedUtils = {
           break;
       }
       if (message)
-        FeedUtils.log.info("downloaded: "+
+        FeedUtils.log.info("downloaded: " +
                            (this.mSubscribeMode ? "Subscribe: " : "Update: ") +
                            location + message);
 

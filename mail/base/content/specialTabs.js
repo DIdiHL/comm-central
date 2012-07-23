@@ -1,39 +1,6 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Communicator client code, released
- * March 31, 1998.
- *
- * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998-1999
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
@@ -529,13 +496,24 @@ var specialTabs = {
     tabmail.registerTabType(this.contentTabType);
     tabmail.registerTabType(this.chromeTabType);
 
-    // If we've upgraded:
+    // If we've upgraded (note: always get these values so that we set
+    // the mstone preference for the new version):
     let [fromVer, toVer] = this.getApplicationUpgradeVersions(prefs);
 
-    // Only show what's new tab if this is actually an upgraded version,
-    // not just a new installation/profile.
-    if (fromVer && ((fromVer[0] != toVer[0]) || (fromVer[1] != toVer[1])))
-      this.showWhatsNewPage();
+    // Although this might not be really necessary because of the version checks, we'll
+    // check this pref anyway and clear it so that we are consistent with what Firefox
+    // actually does. It will help developers switching between branches without updating.
+    if (Services.prefs.prefHasUserValue("app.update.postupdate")) {
+      // Only show what's new tab if this is actually an upgraded version,
+      // not just a new installation/profile (and don't show if the major version
+      // hasn't changed).
+      if (fromVer && ((fromVer[0] != toVer[0]) || (fromVer[1] != toVer[1]))) {
+          // showWhatsNewPage checks the details of the update manager before
+          // showing the page.
+          this.showWhatsNewPage();
+      }
+      Services.prefs.clearUserPref("app.update.postupdate");
+    }
 
     // Show the about rights notification if we need to.
     if (this.shouldShowAboutRightsNotification(prefs))
@@ -588,6 +566,10 @@ var specialTabs = {
 
       clone.setAttribute("id", "contentTab" + this.lastBrowserId);
       clone.setAttribute("collapsed", false);
+
+      let toolbox = clone.firstChild;
+      toolbox.setAttribute("id", "contentTabToolbox" + this.lastBrowserId);
+      toolbox.firstChild.setAttribute("id", "contentTabToolbar" + this.lastBrowserId);
 
       aTab.panel.appendChild(clone);
       aTab.root = clone;
@@ -735,6 +717,22 @@ var specialTabs = {
    * Shows the what's new page in a content tab.
    */
   showWhatsNewPage: function onShowWhatsNewPage() {
+    let um = Components.classes["@mozilla.org/updates/update-manager;1"]
+               .getService(Components.interfaces.nsIUpdateManager);
+
+    try {
+      // If the updates.xml file is deleted then getUpdateAt will throw.
+      var update = um.getUpdateAt(0)
+                     .QueryInterface(Components.interfaces.nsIPropertyBag);
+    } catch (x) {
+      Cu.reportError("Unable to find update: " + x);
+      return;
+    }
+
+    let actions = update.getProperty("actions");
+    if (actions && actions.indexOf("silent") != -1)
+      return;
+
     openWhatsNew();
   },
 
@@ -999,6 +997,10 @@ var specialTabs = {
 
       clone.setAttribute("id", "chromeTab" + this.lastBrowserId);
       clone.setAttribute("collapsed", false);
+
+      let toolbox = clone.firstChild;
+      toolbox.setAttribute("id", "chromeTabToolbox" + this.lastBrowserId);
+      toolbox.firstChild.setAttribute("id", "chromeTabToolbar" + this.lastBrowserId);
 
       aTab.panel.appendChild(clone);
 
@@ -1420,8 +1422,8 @@ var specialTabs = {
    */
   setTabIcon: function(aTab, aIcon) {
     if (aIcon && this.mFaviconService)
-      this.mFaviconService.setAndLoadFaviconForPage(aTab.browser.currentURI,
-                                                    makeURI(aIcon), false);
+      this.mFaviconService.setAndFetchFaviconForPage(aTab.browser.currentURI,
+                                                     makeURI(aIcon), false);
 
     // Save this off so we know about it later,
     aTab.browser.mIconURL = aIcon;

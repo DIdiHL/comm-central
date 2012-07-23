@@ -49,8 +49,16 @@ chrome/icons/default/abcardWindow16.xpm
 chrome/icons/default/ablistWindow.xpm
 chrome/icons/default/addressbookWindow.xpm
 chrome/icons/default/addressbookWindow16.xpm
+chrome/icons/default/bmPropsWindow.ico
+chrome/icons/default/bmPropsWindow.png
+chrome/icons/default/bmPropsWindow16.png
+chrome/icons/default/bmPropsWindow48.png
 chrome/icons/default/bmPropsWindow.xpm
 chrome/icons/default/bmPropsWindow16.xpm
+chrome/icons/default/bookmark-window.ico
+chrome/icons/default/bookmark-window.png
+chrome/icons/default/bookmark-window16.png
+chrome/icons/default/bookmark-window48.png
 chrome/icons/default/bookmark-window.xpm
 chrome/icons/default/bookmark-window16.xpm
 chrome/icons/default/calendar-window.xpm
@@ -281,6 +289,26 @@ modules/dbViewWrapper.js
 modules/mailViewManager.js
 modules/quickSearchManager.js
 modules/searchSpec.js
+modules/services-sync/async.js
+modules/services-sync/auth.js
+modules/services-sync/base_records/collection.js
+modules/services-sync/base_records/crypto.js
+modules/services-sync/base_records/keys.js
+modules/services-sync/base_records/wbo.js
+modules/services-sync/ext/Observers.js
+modules/services-sync/ext/Preferences.js
+modules/services-sync/ext/StringBundle.js
+modules/services-sync/ext/Sync.js
+modules/services-sync/log4moz.js
+modules/services-sync/stores.js
+modules/services-sync/trackers.js
+modules/services-sync/type_records/bookmark.js
+modules/services-sync/type_records/clients.js
+modules/services-sync/type_records/forms.js
+modules/services-sync/type_records/history.js
+modules/services-sync/type_records/passwords.js
+modules/services-sync/type_records/prefs.js
+modules/services-sync/type_records/tabs.js
 #ifdef MOZ_STATIC_JS
 @DLL_PREFIX@mozjs@DLL_SUFFIX@
 #endif
@@ -585,6 +613,8 @@ xpicleanup@BIN_SUFFIX@
   chrome/nonlocalized.manifest
   chrome/localized.manifest
   components/addonManager.js
+  components/Aitc.js
+  components/AlarmsManager.js
   components/amContentHandler.js
   components/amWebInstallListener.js
   components/BrowserElementParent.js
@@ -691,6 +721,8 @@ xpicleanup@BIN_SUFFIX@
   defaults/pref/composer.js
   defaults/pref/mailnews.js
   defaults/pref/mdn.js
+  defaults/pref/services-aitc.js
+  defaults/pref/services-notifications.js
   defaults/pref/services-sync.js
   defaults/pref/smime.js
   defaults/pref/suite-l10n.js
@@ -1000,13 +1032,12 @@ xpicleanup@BIN_SUFFIX@
   modules/services-common/preferences.js
   modules/services-common/rest.js
   modules/services-common/stringbundle.js
+  modules/services-common/tokenserverclient.js
   modules/services-common/utils.js
-  modules/services-sync/auth.js
-  modules/services-sync/base_records/collection.js
-  modules/services-sync/base_records/crypto.js
-  modules/services-sync/base_records/keys.js
-  modules/services-sync/base_records/wbo.js
+  modules/services-crypto/utils.js
+  modules/services-crypto/WeaveCrypto.js
   modules/services-sync/constants.js
+  modules/services-sync/engines/apps.js
   modules/services-sync/engines/bookmarks.js
   modules/services-sync/engines/clients.js
   modules/services-sync/engines/forms.js
@@ -1015,25 +1046,17 @@ xpicleanup@BIN_SUFFIX@
   modules/services-sync/engines/passwords.js
   modules/services-sync/engines/prefs.js
   modules/services-sync/engines/tabs.js
-  modules/services-sync/ext/Observers.js
-  modules/services-sync/ext/Preferences.js
-  modules/services-sync/ext/StringBundle.js
-  modules/services-sync/ext/Sync.js
   modules/services-sync/identity.js
-  modules/services-sync/log4moz.js
+  modules/services-sync/jpakeclient.js
+  modules/services-sync/keys.js
+  modules/services-sync/main.js
   modules/services-sync/notifications.js
+  modules/services-sync/policies.js
+  modules/services-sync/record.js
   modules/services-sync/resource.js
+  modules/services-sync/rest.js
   modules/services-sync/service.js
   modules/services-sync/status.js
-  modules/services-sync/stores.js
-  modules/services-sync/trackers.js
-  modules/services-sync/type_records/bookmark.js
-  modules/services-sync/type_records/clients.js
-  modules/services-sync/type_records/forms.js
-  modules/services-sync/type_records/history.js
-  modules/services-sync/type_records/passwords.js
-  modules/services-sync/type_records/prefs.js
-  modules/services-sync/type_records/tabs.js
   modules/services-sync/util.js
   modules/templateUtils.js
   modules/traceHelper.js
@@ -1098,7 +1121,22 @@ xpicleanup@BIN_SUFFIX@
     update.locale
   #endif
 #else
+  #ifndef MOZ_SERVICES_AITC
+    components/Aitc.js
+  #endif
   components/binary.manifest
+  #ifndef MOZ_SERVICES_SYNC
+    components/Weave.js
+  #endif
+  #ifndef MOZ_SERVICES_AITC
+    defaults/pref/services-aitc.js
+  #endif
+  #ifndef MOZ_SERVICES_NOTIFICATIONS
+    defaults/pref/services-notifications.js
+  #endif
+  #ifndef MOZ_SERVICES_SYNC
+    defaults/pref/services-sync.js
+  #endif
   omni.ja
 #endif
 

@@ -61,9 +61,11 @@
 #ifndef MOZ_STATIC_JS
 @BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
 #endif
+#ifndef MOZ_NATIVE_NSPR
 @BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@
+#endif
 @BINPATH@/@DLL_PREFIX@xpcom@DLL_SUFFIX@
 #ifdef XP_MACOSX
 @BINPATH@/XUL
@@ -121,7 +123,9 @@
 #ifdef XP_OS2
 @BINPATH@/@DLL_PREFIX@mozsqlt3@DLL_SUFFIX@
 #else
+#ifndef MOZ_NATIVE_SQLITE
 @BINPATH@/@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
+#endif
 #endif
 @BINPATH@/license.txt
 @BINPATH@/blocklist.xml
@@ -160,7 +164,6 @@
 @BINPATH@/components/content_events.xpt
 @BINPATH@/components/content_htmldoc.xpt
 @BINPATH@/components/content_html.xpt
-@BINPATH@/components/content_media.xpt
 @BINPATH@/components/content_xslt.xpt
 @BINPATH@/components/content_xtf.xpt
 @BINPATH@/components/cookie.xpt
@@ -170,19 +173,24 @@
 @BINPATH@/components/directory.xpt
 @BINPATH@/components/docshell.xpt
 @BINPATH@/components/dom.xpt
+@BINPATH@/components/dom_alarm.xpt
 @BINPATH@/components/dom_apps.xpt
 @BINPATH@/components/dom_base.xpt
 @BINPATH@/components/dom_battery.xpt
+@BINPATH@/components/dom_browserelement.xpt
 @BINPATH@/components/dom_canvas.xpt
 @BINPATH@/components/dom_contacts.xpt
 @BINPATH@/components/dom_core.xpt
 @BINPATH@/components/dom_css.xpt
+@BINPATH@/components/dom_devicestorage.xpt
 @BINPATH@/components/dom_events.xpt
+@BINPATH@/components/dom_file.xpt
 @BINPATH@/components/dom_geolocation.xpt
 @BINPATH@/components/dom_html.xpt
 @BINPATH@/components/dom_indexeddb.xpt
 @BINPATH@/components/dom_json.xpt
 @BINPATH@/components/dom_loadsave.xpt
+@BINPATH@/components/dom_media.xpt
 @BINPATH@/components/dom_network.xpt
 @BINPATH@/components/dom_notification.xpt
 @BINPATH@/components/dom_offline.xpt
@@ -195,6 +203,7 @@
 @BINPATH@/components/dom_storage.xpt
 @BINPATH@/components/dom_stylesheets.xpt
 @BINPATH@/components/dom_svg.xpt
+@BINPATH@/components/dom_system.xpt
 @BINPATH@/components/dom_traversal.xpt
 @BINPATH@/components/dom_xbl.xpt
 @BINPATH@/components/dom_xpath.xpt
@@ -215,6 +224,7 @@
 @BINPATH@/components/gfx.xpt
 @BINPATH@/components/html5.xpt
 @BINPATH@/components/htmlparser.xpt
+@BINPATH@/components/identity.xpt
 @BINPATH@/components/imgicon.xpt
 @BINPATH@/components/imglib2.xpt
 @BINPATH@/components/inspector.xpt
@@ -251,7 +261,9 @@
 @BINPATH@/components/necko_strconv.xpt
 @BINPATH@/components/necko_viewsource.xpt
 @BINPATH@/components/necko_websocket.xpt
+#ifdef NECKO_WIFI
 @BINPATH@/components/necko_wifi.xpt
+#endif
 @BINPATH@/components/necko_wyciwyg.xpt
 #ifdef MOZ_ENABLE_GNOMEVFS
 @BINPATH@/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
@@ -325,6 +337,12 @@
 
 ; JavaScript components
 @BINPATH@/components/addonManager.js
+#ifdef MOZ_SERVICES_AITC
+@BINPATH@/components/Aitc.js
+@BINPATH@/components/AitcComponents.manifest
+#endif
+@BINPATH@/components/AlarmsManager.js
+@BINPATH@/components/AlarmsManager.manifest
 @BINPATH@/components/amContentHandler.js
 @BINPATH@/components/amWebInstallListener.js
 @BINPATH@/components/AppsService.js
@@ -352,6 +370,9 @@
 @BINPATH@/components/messageWakeupService.manifest
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
+#ifdef MOZ_SERVICES_NOTIFICATIONS
+@BINPATH@/components/NotificationsComponents.manifest
+#endif
 @BINPATH@/components/nsAbout.js
 @BINPATH@/components/nsBadCertHandler.js
 @BINPATH@/components/nsBadCertHandler.manifest
@@ -428,12 +449,16 @@
 @BINPATH@/components/smileApplication.manifest
 @BINPATH@/components/storage-Legacy.js
 @BINPATH@/components/storage-mozStorage.js
+#ifdef MOZ_SERVICES_SYNC
 @BINPATH@/components/SyncComponents.manifest
+#endif
 @BINPATH@/components/TelemetryPing.js
 @BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/txEXSLTRegExFunctions.js
 @BINPATH@/components/txEXSLTRegExFunctions.manifest
+#ifdef MOZ_SERVICES_SYNC
 @BINPATH@/components/Weave.js
+#endif
 @BINPATH@/components/Webapps.js
 @BINPATH@/components/Webapps.manifest
 @BINPATH@/components/WebContentConverter.js
@@ -472,12 +497,9 @@
 
 ; shell icons
 #ifdef MOZ_GTK2
-@BINPATH@/chrome/icons/default/bmPropsWindow.png
-@BINPATH@/chrome/icons/default/bmPropsWindow16.png
-@BINPATH@/chrome/icons/default/bmPropsWindow48.png
-@BINPATH@/chrome/icons/default/bookmark-window.png
-@BINPATH@/chrome/icons/default/bookmark-window16.png
-@BINPATH@/chrome/icons/default/bookmark-window48.png
+@BINPATH@/chrome/icons/default/bookmarkproperties.png
+@BINPATH@/chrome/icons/default/bookmarkproperties16.png
+@BINPATH@/chrome/icons/default/bookmarkproperties48.png
 @BINPATH@/chrome/icons/default/default.png
 @BINPATH@/chrome/icons/default/default16.png
 @BINPATH@/chrome/icons/default/default48.png
@@ -502,11 +524,15 @@
 @BINPATH@/chrome/icons/default/main-window.png
 @BINPATH@/chrome/icons/default/main-window16.png
 @BINPATH@/chrome/icons/default/main-window48.png
+@BINPATH@/chrome/icons/default/places.png
+@BINPATH@/chrome/icons/default/places16.png
+@BINPATH@/chrome/icons/default/places48.png
 @BINPATH@/chrome/icons/default/seamonkey.png
+#ifdef MOZ_UPDATER
 @BINPATH@/icons/updater.png
+#endif
 #elifdef WIN_OR_OS2
-@BINPATH@/chrome/icons/default/bmPropsWindow.ico
-@BINPATH@/chrome/icons/default/bookmark-window.ico
+@BINPATH@/chrome/icons/default/bookmarkproperties.ico
 @BINPATH@/chrome/icons/default/downloadManager.ico
 @BINPATH@/chrome/icons/default/editorWindow.ico
 @BINPATH@/chrome/icons/default/findBookmarkWindow.ico
@@ -514,6 +540,7 @@
 @BINPATH@/chrome/icons/default/history-window.ico
 @BINPATH@/chrome/icons/default/JSConsoleWindow.ico
 @BINPATH@/chrome/icons/default/main-window.ico
+@BINPATH@/chrome/icons/default/places.ico
 #ifdef XP_WIN32
 @BINPATH@/chrome/icons/default/gif-file.ico
 @BINPATH@/chrome/icons/default/html-file.ico
@@ -537,12 +564,26 @@
 ; [Default Preferences]
 ; All the browser/general pref files must be part of base to prevent migration bugs
 @BINPATH@/@PREF_DIR@/browser-prefs.js
+#ifdef LIBXUL_SDK
 @BINPATH@/@PREF_DIR@/channel-prefs.js
+#endif
+#ifdef MOZ_SERVICES_AITC
+@BINPATH@/@PREF_DIR@/services-aitc.js
+#endif
+#ifdef MOZ_SERVICES_NOTIFICATIONS
+@BINPATH@/@PREF_DIR@/services-notifications.js
+#endif
+#ifdef MOZ_SERVICES_SYNC
 @BINPATH@/@PREF_DIR@/services-sync.js
+#endif
 @BINPATH@/@PREF_DIR@/composer.js
 @BINPATH@/greprefs.js
 @BINPATH@/defaults/autoconfig/platform.js
 @BINPATH@/defaults/autoconfig/prefcalls.js
+#ifndef LIBXUL_SDK
+; Warning: changing the path to channel-prefs.js can cause bugs. (Bug 756325)
+@BINPATH@/defaults/pref/channel-prefs.js
+#endif
 
 ; [Layout Engine Resources]
 ; Layout debug extension.
@@ -597,6 +638,7 @@
 ; NSS libraries are signed in the staging directory,
 ; meaning their .chk files are created there directly.
 ;
+#ifndef MOZ_NATIVE_NSS
 @BINPATH@/@DLL_PREFIX@freebl3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@nss3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@nssckbi@DLL_SUFFIX@
@@ -607,6 +649,7 @@
 @BINPATH@/@DLL_PREFIX@smime3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@softokn3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@ssl3@DLL_SUFFIX@
+#endif
 @BINPATH@/chrome/pippki@JAREXT@
 @BINPATH@/chrome/pippki.manifest
 @BINPATH@/components/pipboot.xpt
@@ -761,6 +804,9 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/components/glautocomp.js
 @BINPATH@/components/jsmimeemitter.js
 @BINPATH@/components/gloda.manifest
+
+; New message notification
+@BINPATH@/components/newMailNotificationService.js
 
 [chatzilla]
 #ifdef MOZ_OMNIJAR

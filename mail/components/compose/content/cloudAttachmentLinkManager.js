@@ -193,6 +193,12 @@ var gCloudAttachmentLinkManager = {
                                            signature.previousSibling));
         else {
           selection.collapse(mailBody, childNodes.length - 1);
+          editor.insertLineBreak();
+
+          if (!gMsgCompose.composeHTML)
+            editor.insertLineBreak();
+
+          selection.collapse(mailBody, childNodes.length - 2);
         }
       } else {
         // Replying above quote
@@ -205,7 +211,7 @@ var gCloudAttachmentLinkManager = {
           selection.collapse(mailBody, nodeIndex);
         } else {
           editor.beginningOfDocument();
-          editor.insertLineBreak()
+          editor.insertLineBreak();
         }
       }
       return;
@@ -496,9 +502,9 @@ var gCloudAttachmentLinkManager = {
   },
 };
 
-document.documentElement.addEventListener("compose-window-init",
-  gCloudAttachmentLinkManager.init.bind(gCloudAttachmentLinkManager), false);
-document.documentElement.addEventListener("compose-window-close",
-  gCloudAttachmentLinkManager.uninit.bind(gCloudAttachmentLinkManager), false);
-document.documentElement.addEventListener("compose-send-message",
-  gCloudAttachmentLinkManager.send.bind(gCloudAttachmentLinkManager), false);
+window.addEventListener("compose-window-init",
+  gCloudAttachmentLinkManager.init.bind(gCloudAttachmentLinkManager), true);
+window.addEventListener("compose-window-close",
+  gCloudAttachmentLinkManager.uninit.bind(gCloudAttachmentLinkManager), true);
+window.addEventListener("compose-send-message",
+  gCloudAttachmentLinkManager.send.bind(gCloudAttachmentLinkManager), true);

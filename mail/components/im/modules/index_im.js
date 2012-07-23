@@ -1,38 +1,6 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Thunderbird.
- *
- * The Initial Developer of the Original Code is
- * Florian QUEZE <florian@queze.net>.
- * Portions created by the Initial Developer are Copyright (C) 2012
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const EXPORTED_SYMBOLS = [];
 
@@ -115,7 +83,7 @@ GlodaIMConversation.prototype = {
   get from() {
     if (!this._from) {
       let from = "";
-      let account = this._account;
+      let account = this.account;
       if (account)
         from = account.incomingServer.wrappedJSObject.imAccount.protocol.name;
       this._from = {value: "", contact: {name: from}};
@@ -258,10 +226,13 @@ Gloda.defineAttribute({
 var GlodaIMIndexer = {
   name: "index_im",
   enable: function() {
-    //TODO start listening for incremental changes
+    Services.obs.addObserver(this, "new-text", false);
+    Services.obs.addObserver(this, "conversation-closed", false);
+
   },
   disable: function() {
-    //TODO stop listening for incremental changes
+    Services.obs.removeObserver(this, "new-text");
+    Services.obs.removeObserver(this, "conversation-closed");
   },
 
   _knownFiles: {},
@@ -289,6 +260,105 @@ var GlodaIMIndexer = {
     });
   },
 
+  _knownConversations: {},
+  observe: function logger_observe(aSubject, aTopic, aData) {
+    if (aTopic == "conversation-closed") {
+      delete this._knownConversations[aSubject.id];
+      return;
+    }
+
+    if (aTopic != "new-text" || aSubject.noLog)
+      return;
+
+    let conv = aSubject.conversation;
+    let convId = conv.id;
+    if (!(convId in this._knownConversations)) {
+      let logFile = Services.logs.getLogFileForOngoingConversation(conv);
+
+      let folder = logFile.parent;
+      let convName = folder.leafName;
+      folder = folder.parent;
+      let accountName = folder.leafName;
+      folder = folder.parent;
+      let protoName = folder.leafName;
+      if (!Object.prototype.hasOwnProperty.call(this._knownFiles, protoName))
+        this._knownFiles[protoName] = {};
+      let protoObj = this._knownFiles[protoName];
+      if (!Object.prototype.hasOwnProperty.call(protoObj, accountName))
+        protoObj[accountName] = {};
+      let accountObj = protoObj[accountName];
+      if (!Object.prototype.hasOwnProperty.call(accountObj, convName))
+        accountObj[convName] = {};
+
+      this._knownConversations[convId] =
+        {indexPending: false, logFile: logFile, convObj: accountObj[convName]};
+    }
+
+    if (this._knownConversations[convId].indexPending)
+      return;
+
+    this._knownConversations[convId].indexPending = true;
+    let job = new IndexingJob("indexIMConversation", null);
+    job.conversation = this._knownConversations[convId];
+    GlodaIndexer.indexJob(job);
+  },
+
+  /* aGlodaConv is an optional inout param that lets the caller save and reuse
+   * the GlodaIMConversation instance created when the conversation is indexed
+   * the first time. After a conversation is indexed for the first time,
+   * the GlodaIMConversation instance has its id property set to the row id of
+   * the conversation in the database. This id is required to later update the
+   * conversation in the database, so the caller dealing with ongoing
+   * conversation has to provide the aGlodaConv parameter, while the caller
+   * dealing with old conversations doesn't care. */
+  indexIMConversation: function(aCallbackHandle, aFile, aCache, aGlodaConv) {
+    let fileName = aFile.leafName;
+    let lastModifiedTime = aFile.lastModifiedTime;
+    let isNew = true;
+    if (Object.prototype.hasOwnProperty.call(aCache, fileName)) {
+      if (aCache[fileName] == lastModifiedTime)
+        return Gloda.kWorkSync;
+      else
+        isNew = false;
+    }
+
+    let log = Services.logs.getLogFromFile(aFile);
+    let conv = log.getConversation();
+    let content = conv.getMessages()
+                      .map(function(m) (m.alias || m.who) + ": " + MailFolder.convertMsgSnippetToPlainText(m.message))
+                      .join("\n\n");
+    let folder = aFile.parent;
+    let path = [folder.parent.parent.leafName, folder.parent.leafName, folder.leafName, fileName].join("/");
+    let glodaConv;
+    if (aGlodaConv && aGlodaConv.value) {
+      glodaConv = aGlodaConv.value;
+      glodaConv._content = content;
+    }
+    else {
+      glodaConv = new GlodaIMConversation(conv.title, log.time, path, content);
+      if (aGlodaConv)
+        aGlodaConv.value = glodaConv;
+    }
+    let rv = aCallbackHandle.pushAndGo(
+      Gloda.grokNounItem(glodaConv, {}, true, isNew, aCallbackHandle));
+    aCache[fileName] = lastModifiedTime;
+    this._scheduleCacheSave();
+    return rv;
+  },
+
+  _worker_indexIMConversation: function(aJob, aCallbackHandle) {
+    let glodaConv = {};
+    if (aJob.conversation.glodaConv)
+      glodaConv.value = aJob.conversation.glodaConv;
+    // indexIMConversation may initiate an async grokNounItem sub-job.
+    yield this.indexIMConversation(aCallbackHandle, aJob.conversation.logFile,
+                                   aJob.conversation.convObj, glodaConv);
+    aJob.conversation.indexPending = false;
+    aJob.conversation.glodaConv = glodaConv.value;
+
+    yield Gloda.kWorkDone;
+  },
+
   _worker_logsFolderSweep: function(aJob) {
     let dir = FileUtils.getFile("ProfD", ["logs"]);
     if (!dir.exists() || !dir.isDirectory())
@@ -298,7 +368,7 @@ var GlodaIMIndexer = {
     cacheFile.append(kCacheFileName);
     if (cacheFile.exists()) {
       const PR_RDONLY = 0x01;
-      let fis = new FileInputStream(cacheFile, PR_RDONLY, 0444,
+      let fis = new FileInputStream(cacheFile, PR_RDONLY, parseInt("0444", 8),
                                     Ci.nsIFileInputStream.CLOSE_ON_EOF);
       let sis = new ScriptableInputStream(fis);
       let text = sis.read(sis.available());
@@ -343,7 +413,6 @@ var GlodaIMIndexer = {
 
   _worker_convFolderSweep: function(aJob, aCallbackHandle) {
     let folder = aJob.folder;
-    let cache = aJob.convObj;
 
     let sessions = folder.directoryEntries;
     while (sessions.hasMoreElements()) {
@@ -351,33 +420,21 @@ var GlodaIMIndexer = {
       let fileName = file.leafName;
       if (!file.isFile() || !file.isReadable() || !/\.json$/.test(fileName))
         continue;
-      let lastModifiedTime = file.lastModifiedTime;
-      if (Object.prototype.hasOwnProperty.call(cache, fileName) &&
-          cache[fileName] == lastModifiedTime) {
-        continue;
-      }
-      let log = Services.logs.getLogFromFile(file);
-      let conv = log.getConversation();
-      let content = conv.getMessages()
-                        .map(function(m) (m.alias || m.who) + ": " + MailFolder.convertMsgSnippetToPlainText(m.message))
-                        .join("\n\n");
-      let path = [folder.parent.parent.leafName, folder.parent.leafName, folder.leafName, fileName].join("/");
-      let glodaConv = new GlodaIMConversation(conv.title, log.time, path, content);
-      yield aCallbackHandle.pushAndGo(
-        Gloda.grokNounItem(glodaConv, {}, true, true, aCallbackHandle));
-      aJob.convObj[fileName] = lastModifiedTime;
-      this._scheduleCacheSave();
-      yield Gloda.kWorkSync;
+      // indexIMConversation may initiate an async grokNounItem sub-job.
+      yield this.indexIMConversation(aCallbackHandle, file, aJob.convObj);
     }
     yield Gloda.kWorkDone;
   },
 
   get workers() {
     return [
+      ["indexIMConversation", {
+         worker: this._worker_indexIMConversation
+       }],
       ["logsFolderSweep", {
          worker: this._worker_logsFolderSweep
        }],
-       ["convFolderSweep", {
+      ["convFolderSweep", {
          worker: this._worker_convFolderSweep
        }]
     ];

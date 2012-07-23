@@ -1,46 +1,7 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Shell Service.
- *
- * The Initial Developer of the Original Code is mozilla.org.
- * Portions created by the Initial Developer are Copyright (C) 2004
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *  Ben Goodger    <ben@mozilla.org>       (Clients, Mail, New Default Browser)
- *  Joe Hewitt     <hewitt@netscape.com>   (Set Background)
- *  Blake Ross     <blake@cs.stanford.edu> (Desktop Color, DDE support)
- *  Jungshik Shin  <jshin@mailaps.org>     (I18N)
- *  Robert Strong  <robert.bugzilla@gmail.com>  (Long paths, DDE)
- *  Asaf Romano    <mano@mozilla.com>
- *  Ryan Jones     <sciguyryan@gmail.com>
- *  Frank Wein     <mcsmurf@mcsmurf.de>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "imgIContainer.h"
 #include "imgIRequest.h"
@@ -51,7 +12,7 @@
 #include "nsWindowsShellService.h"
 #include "nsIProcess.h"
 #include "windows.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsNetUtil.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsUnicharUtils.h"
@@ -342,9 +303,9 @@ GetHelperPath(nsString& aPath)
     do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> appHelper;
+  nsCOMPtr<nsIFile> appHelper;
   rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR,
-                             NS_GET_IID(nsILocalFile),
+                             NS_GET_IID(nsIFile),
                              getter_AddRefs(appHelper));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -590,8 +551,8 @@ nsWindowsShellService::SetDefaultClient(bool aForAllUsers,
     do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> appHelper;
-  rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(appHelper));
+  nsCOMPtr<nsIFile> appHelper;
+  rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR, NS_GET_IID(nsIFile), getter_AddRefs(appHelper));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = appHelper->AppendNative(NS_LITERAL_CSTRING("uninstall"));
@@ -676,6 +637,13 @@ nsWindowsShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   return prefs->SetIntPref("shell.checkDefaultApps", aApps);
+}
+
+NS_IMETHODIMP
+nsWindowsShellService::GetCanSetDesktopBackground(bool* aResult)
+{
+  *aResult = true;
+  return NS_OK;
 }
 
 static nsresult
@@ -903,7 +871,7 @@ nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::OpenApplicationWithURI(nsILocalFile* aApplication,
+nsWindowsShellService::OpenApplicationWithURI(nsIFile* aApplication,
                                               const nsACString& aURI)
 {
   nsresult rv;
@@ -922,7 +890,7 @@ nsWindowsShellService::OpenApplicationWithURI(nsILocalFile* aApplication,
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::GetDefaultFeedReader(nsILocalFile** _retval)
+nsWindowsShellService::GetDefaultFeedReader(nsIFile** _retval)
 {
   *_retval = nsnull;
 
@@ -958,7 +926,7 @@ nsWindowsShellService::GetDefaultFeedReader(nsILocalFile** _retval)
     path = Substring(path, 0, path.FindChar(' '));
   }
 
-  nsCOMPtr<nsILocalFile> defaultReader =
+  nsCOMPtr<nsIFile> defaultReader =
     do_CreateInstance("@mozilla.org/file/local;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 

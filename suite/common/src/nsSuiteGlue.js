@@ -1,43 +1,6 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is the Browser Search Service.
- *
- * The Initial Developer of the Original Code is
- * Giorgio Maone.
- * Portions created by the Initial Developer are Copyright (C) 2005
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Giorgio Maone <g.maone@informaction.com>
- *   Seth Spitzer <sspitzer@mozilla.com>
- *   Asaf Romano <mano@mozilla.com>
- *   Robert Kaiser <kairo@kairo.at>
- *   Nils Maier <maierman@web.de>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either of the GNU General Public License Version 2 or later (the "GPL"),
- * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 
@@ -180,6 +143,9 @@ SuiteGlue.prototype = {
       case "weave:service:ready":
         this._setSyncAutoconnectDelay();
         break;
+      case "weave:engine:clients:display-uri":
+        this._onDisplaySyncURI(subject);
+        break;
       case "session-save":
         this._setPrefToSaveSession();
         subject.QueryInterface(Components.interfaces.nsISupportsPRBool);
@@ -268,6 +234,7 @@ SuiteGlue.prototype = {
     Services.obs.addObserver(this, "browser-lastwindow-close-granted", false);
     Services.obs.addObserver(this, "console-api-log-event", false);
     Services.obs.addObserver(this, "weave:service:ready", false);
+    Services.obs.addObserver(this, "weave:engine:clients:display-uri", false);
     Services.obs.addObserver(this, "session-save", false);
     Services.obs.addObserver(this, "dl-done", false);
     Services.obs.addObserver(this, "places-init-complete", false);
@@ -296,6 +263,7 @@ SuiteGlue.prototype = {
     Services.obs.removeObserver(this, "browser-lastwindow-close-granted");
     Services.obs.removeObserver(this, "console-api-log-event");
     Services.obs.removeObserver(this, "weave:service:ready");
+    Services.obs.removeObserver(this, "weave:engine:clients:display-uri");
     Services.obs.removeObserver(this, "session-save");
     Services.obs.removeObserver(this, "dl-done");
     if (this._isIdleObserver)
@@ -891,7 +859,7 @@ SuiteGlue.prototype = {
     // be set to the version it has been added in, we will compare its value
     // to users' smartBookmarksVersion and add new smart bookmarks without
     // recreating old deleted ones.
-    const SMART_BOOKMARKS_VERSION = 3;
+    const SMART_BOOKMARKS_VERSION = 4;
     const SMART_BOOKMARKS_ANNO = "Places/SmartBookmark";
     const SMART_BOOKMARKS_PREF = "browser.places.smartBookmarksVersion";
 
@@ -919,9 +887,7 @@ SuiteGlue.prototype = {
         let smartBookmarks = {
           MostVisited: {
             title: bundle.GetStringFromName("mostVisitedTitle"),
-            uri: NetUtil.newURI("place:redirectsMode=" +
-                                Components.interfaces.nsINavHistoryQueryOptions.REDIRECTS_MODE_TARGET +
-                                "&sort=" +
+            uri: NetUtil.newURI("place:sort=" +
                                 Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_VISITCOUNT_DESCENDING +
                                 "&maxResults=" + MAX_RESULTS),
             parent: PlacesUtils.toolbarFolderId,
@@ -1033,6 +999,27 @@ SuiteGlue.prototype = {
     }
   },
 
+  /**
+   * Called as an observer when Sync's "display URI" notification is fired.
+   */
+  _onDisplaySyncURI: function _onDisplaySyncURI(data) {
+    try {
+      var url = data.wrappedJSObject.object.uri;
+      var mostRecentBrowserWindow = Services.wm.getMostRecentWindow("navigator:browser");
+      if (mostRecentBrowserWindow) {
+        mostRecentBrowserWindow.getBrowser().addTab(url, { focusNewTab: true });
+        mostRecentBrowserWindow.content.focus();
+      } else {
+        var args = Components.classes["@mozilla.org/supports-string;1"]
+                             .createInstance(Components.interfaces.nsISupportsString);
+        args.data = url;
+        var chromeURL = Services.prefs.getCharPref("browser.chromeURL");
+        Services.ww.openWindow(null, chromeURL, "_blank", "chrome,all,dialog=no", args);
+      }
+    } catch (e) {
+      Components.utils.reportError("Error displaying tab received by Sync: " + e);
+    }
+  },
 
   // for XPCOM
   classID: Components.ID("{bbbbe845-5a1b-40ee-813c-f84b8faaa07c}"),

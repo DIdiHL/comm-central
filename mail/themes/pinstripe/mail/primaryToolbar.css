@@ -1,39 +1,6 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Communicator client code, released
- * March 31, 1998.
- *
- * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998-1999
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /* ===== primaryToolbar.css =============================================
    == Images for the Mail primary toolbar.
@@ -51,19 +18,22 @@
 .mail-toolbox,
 .contentTabToolbox {
   -moz-appearance: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.57);
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 19px);
+  border-bottom: 1px solid hsl(0, 0%, 60%);
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.32),
+                    rgba(255, 255, 255, 0) 19px);
 }
 
 .mail-toolbox:not(:-moz-lwtheme),
 .contentTabToolbox:not(:-moz-lwtheme) {
-  background-color: -moz-mac-chrome-active;
+  background-image: -moz-linear-gradient(hsl(0, 0%, 93%), hsl(0, 0%, 83%) 98%,
+                    hsla(0, 0%, 100%, .15));
 }
 
 .mail-toolbox:not(:-moz-lwtheme):-moz-window-inactive,
 .contentTabToolbox:not(:-moz-lwtheme):-moz-window-inactive {
   background-color: -moz-mac-chrome-inactive;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 19px);
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, 0) 19px);
 }
 
 /* Inactive window state */
@@ -75,7 +45,8 @@
 
 .mail-toolbox:-moz-lwtheme,
 .contentTabToolbox:-moz-lwtheme {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5),
+                    rgba(255, 255, 255, 0) 28px);
 }
 
 .mail-bar3 {
@@ -378,24 +349,22 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
   display: none;
 }
 
-#button-nextUnread, #button-nextMsg {
+#button-nextUnread {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 234px 18px 216px);
 }
 
-#button-nextUnread:not([disabled="true"]):active,
-#button-nextMsg:not([disabled="true"]):active {
+#button-nextUnread:not([disabled="true"]):active {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(18px 234px 36px 216px);
 }
 
-#button-previousUnread, #button-previousMsg {
+#button-previousUnread {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 252px 18px 234px);
 }
 
-#button-previousUnread:not([disabled="true"]):active, 
-#button-previousMsg:not([disabled="true"]):active {
+#button-previousUnread:not([disabled="true"]):active {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(18px 252px 36px 234px);
 }
@@ -468,6 +437,33 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
 #button-chat:not([disabled="true"]):active {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(18px, 396px, 36px, 378px);
+}
+
+#button-chat[unreadMessages="true"] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(36px, 396px, 54px, 378px);
+  color: #0969b2;
+  text-shadow: 0 1px 0 rgbra(255, 255, 255, 0.4);
+}
+
+#button-nextMsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 414px, 18px, 396px);
+}
+
+#button-nextMsg:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(18px, 414px, 36px, 396px);
+}
+
+#button-previousMsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 432px, 18px, 414px);
+}
+
+#button-previousMsg:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(18px, 432px, 36px, 414px);
 }
 
 /* ::::: end small primary toolbar buttons ::::: */

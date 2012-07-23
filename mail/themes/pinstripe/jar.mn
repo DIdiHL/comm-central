@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 classic.jar:
 % skin messenger classic/1.0 %skin/classic/messenger/
   skin/classic/messenger/glodaFacetView.css                      (mail/glodaFacetView.css)
@@ -79,6 +83,9 @@ classic.jar:
   skin/classic/messenger/addressbook/icons/remote-addrbook.png   (mail/addrbook/remote-addrbook.png)
   skin/classic/messenger/addressbook/icons/secure-remote-addrbook.png     (mail/addrbook/secure-remote-addrbook.png)
   skin/classic/messenger/cloudfile/addAccountDialog.css          (mail/cloudfile/addAccountDialog.css)
+  skin/classic/messenger/cloudfile/YouSendIt/settings.css               (mail/cloudfile/YouSendIt/settings.css)
+  skin/classic/messenger/cloudfile/YouSendIt/fileExceedsLimit.css       (mail/cloudfile/YouSendIt/fileExceedsLimit.css)
+  skin/classic/messenger/cloudfile/YouSendIt/check.png                  (mail/cloudfile/YouSendIt/check.png)
   skin/classic/messenger/messengercompose/messengercompose.css    (mail/compose/messengercompose.css)
   skin/classic/messenger/messengercompose/attachmentnotification.png     (mail/compose/attachmentnotification.png)
   skin/classic/messenger/messengercompose/compose-toolbar.png     (mail/compose/compose-toolbar.png)
@@ -226,14 +233,17 @@ classic.jar:
   skin/classic/messenger/tabs/alltabs-box-bkgnd-icon.png              (mail/tabs/alltabs-box-bkgnd-icon.png)
   skin/classic/messenger/tabs/alltabs-box-overflow-bkgnd-animate.png  (mail/tabs/alltabs-box-overflow-bkgnd-animate.png)
   skin/classic/messenger/tabs/newtab.png                              (mail/tabs/newtab.png)
-  skin/classic/messenger/tabs/tab-arrow-end.png                       (mail/tabs/tab-arrow-end.png)
-  skin/classic/messenger/tabs/tab-arrow-start.png                     (mail/tabs/tab-arrow-start.png)
-  skin/classic/messenger/tabs/tab-bkgnd.png                           (mail/tabs/tab-bkgnd.png)
   skin/classic/messenger/tabs/tabDragIndicator.png                    (mail/tabs/tabDragIndicator.png)
-  skin/classic/messenger/tabs/tabbrowser-tabs-bkgnd.png               (mail/tabs/tabbrowser-tabs-bkgnd.png)
-  skin/classic/messenger/tabs/tab.png                            (mail/tabs/tab.png)
-  skin/classic/messenger/tabs/tab-normal-active.png              (mail/tabs/tab-normal-active.png)
-  skin/classic/messenger/tabs/tab-hover-active.png               (mail/tabs/tab-hover-active.png)
+  skin/classic/messenger/tabs/tab-arrow.png                      (mail/tabs/tab-arrow.png)
+  skin/classic/messenger/tabs/tabActiveEnd.png                   (mail/tabs/tabActiveEnd.png)
+  skin/classic/messenger/tabs/tabActiveMiddle.png                (mail/tabs/tabActiveMiddle.png)
+  skin/classic/messenger/tabs/tabActiveStart.png                 (mail/tabs/tabActiveStart.png)
+  skin/classic/messenger/tabs/tabHoverEnd.png                    (mail/tabs/tabHoverEnd.png)
+  skin/classic/messenger/tabs/tabHoverMiddle.png                 (mail/tabs/tabHoverMiddle.png)
+  skin/classic/messenger/tabs/tabHoverStart.png                  (mail/tabs/tabHoverStart.png)
+  skin/classic/messenger/tabs/tabInactiveEnd.png                 (mail/tabs/tabInactiveEnd.png)
+  skin/classic/messenger/tabs/tabInactiveMiddle.png              (mail/tabs/tabInactiveMiddle.png)
+  skin/classic/messenger/tabs/tabInactiveStart.png               (mail/tabs/tabInactiveStart.png)
   skin/classic/messenger/accountcentral/accountsettings.png      (mail/accountcentral/accountsettings.png)
   skin/classic/messenger/accountcentral/folder.png               (mail/accountcentral/folder.png)
   skin/classic/messenger/accountcentral/junk.png                 (mail/accountcentral/junk.png)
@@ -296,5 +306,5 @@ classic.jar:
   skin/classic/messenger/newmailaccount/success-compose.png             (mail/newmailaccount/success-compose.png)
   skin/classic/messenger/newmailaccount/success-signature.png           (mail/newmailaccount/success-signature.png)
   skin/classic/messenger/newmailaccount/search.png                      (mail/newmailaccount/search.png)
-  skin/classic/messenger/icons/dropbox.png                    (mail/icons/dropbox.png)
+  skin/classic/messenger/icons/ubuntuone.png                    (mail/icons/ubuntuone.png)
   skin/classic/messenger/icons/yousendit.png                  (mail/icons/yousendit.png)

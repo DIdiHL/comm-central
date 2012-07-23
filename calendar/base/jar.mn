@@ -1,4 +1,8 @@
 #filter substitution
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 calendar.jar:
 % resource calendar .
 % content calendar %content/calendar/
@@ -47,7 +51,7 @@ calendar.jar:
     content/calendar/calendar-error-prompt.xul             (content/dialogs/calendar-error-prompt.xul)
     content/calendar/calendar-event-dialog.css             (content/dialogs/calendar-event-dialog.css)
     content/calendar/calendar-event-dialog.js              (content/dialogs/calendar-event-dialog.js)
-    content/calendar/calendar-event-dialog.xul             (content/dialogs/calendar-event-dialog.xul)
+*   content/calendar/calendar-event-dialog.xul             (content/dialogs/calendar-event-dialog.xul)
     content/calendar/calendar-event-dialog-attendees.xml   (content/dialogs/calendar-event-dialog-attendees.xml)
     content/calendar/calendar-event-dialog-freebusy.xml    (content/dialogs/calendar-event-dialog-freebusy.xml)
     content/calendar/calendar-event-dialog-recurrence.xul  (content/dialogs/calendar-event-dialog-recurrence.xul)
@@ -122,6 +126,7 @@ calendar.jar:
     skin/calendar/calendar-overlay.png                     (themes/common/images/calendar-overlay.png)
     skin/calendar/calendar-printing.css                    (themes/common/calendar-printing.css)
     skin/calendar/calendar-status.png                      (themes/common/images/calendar-status.png)
+    skin/calendar/classification.png                       (themes/common/images/classification.png)
     skin/calendar/common/calendar-task-tree.css            (themes/common/calendar-task-tree.css)
     skin/calendar/daypicker-background.png                 (themes/common/images/daypicker-background.png)
     skin/calendar/day-box-item-image.png                   (themes/common/images/day-box-item-image.png)
@@ -173,11 +178,14 @@ calendar.jar:
 
 # Following files only add for OSX.
 #ifdef XP_MACOSX
+    skin/calendar/checkbox-images-graphite.png             (themes/@THEME@/images/checkbox-images-graphite.png)
     skin/calendar/sidebar-item.png                         (themes/@THEME@/images/sidebar-item.png)
+    skin/calendar/toolbar.png                              (themes/@THEME@/images/toolbar.png)
 #endif
 
 # The following files are added for aero support on windows.
 #ifdef XP_WIN
+% style chrome://global/content/customizeToolbar.xul chrome://calendar-windows/skin/calendar-event-dialog.css os=WINNT
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar-windows/skin/calendar-event-dialog.css os=WINNT
 % style chrome://calendar/content/calendar-event-dialog-attendees.xul chrome://calendar-windows/skin/calendar-event-dialog.css os=WINNT
 % style chrome://calendar/content/calendar-occurrence-prompt.xul chrome://calendar-windows/skin/calendar.css os=WINNT osversion>=6

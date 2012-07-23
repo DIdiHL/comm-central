@@ -1,39 +1,7 @@
-# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is an RSS Feed Item
-#
-# The Initial Developer of the Original Code is
-# The Mozilla Foundation.
-# Portions created by the Initial Developer are Copyright (C) 2004
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK ***** */
+/* -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 function FeedItem()
 {
@@ -54,8 +22,7 @@ FeedItem.prototype =
   feed: null,
   description: null,
   content: null,
-  // Currently only support one enclosure per feed item.
-  enclosure: null,
+  enclosures: [],
   // TO DO: this needs to be localized.
   title: "(no subject)",
   author: "anonymous",
@@ -189,8 +156,7 @@ FeedItem.prototype =
       FeedUtils.log.debug("FeedItem.findStoredResource: " + this.feed.name +
                           " folder doesn't exist; creating as child of " +
                           server.rootMsgFolder.prettyName + "\n");
-      server.rootMsgFolder.createSubfolder(this.feed.name, null);
-      folder = server.rootMsgFolder.findSubFolder(this.feed.name);
+      this.feed.createFolder();
       FeedUtils.log.debug("FeedItem.findStoredResource: " + this.identity +
                           " not stored (folder didn't exist)");
       return null;
@@ -384,24 +350,26 @@ FeedItem.prototype =
       'Content-Transfer-Encoding: 8bit\n' +
       'Content-Base: ' + this.mURL + '\n';
 
-    if (this.enclosure && this.enclosure.mFileName)
+    if (this.enclosures.length)
     {
-      let boundaryID = source.length + this.enclosure.mLength;
-      source += 'Content-Type: multipart/mixed;\n boundary="' +
+      let boundaryID = source.length;
+      source += 'Content-Type: multipart/mixed; boundary="' +
                 this.ENCLOSURE_HEADER_BOUNDARY_PREFIX + boundaryID + '"' + '\n\n' +
                 'This is a multi-part message in MIME format.\n' +
                 this.ENCLOSURE_BOUNDARY_PREFIX + boundaryID + '\n' +
                 'Content-Type: text/html; charset=' + this.characterSet + '\n' +
                 'Content-Transfer-Encoding: 8bit\n' +
                 this.content;
-      source += this.enclosure.convertToAttachment(boundaryID);
+
+      this.enclosures.forEach(function(enclosure) {
+        source += enclosure.convertToAttachment(boundaryID);
+      });
+
+      source += this.ENCLOSURE_BOUNDARY_PREFIX + boundaryID + '--' + '\n\n\n';
     }
     else
-    {
       source += 'Content-Type: text/html; charset=' + this.characterSet + '\n' +
-                '\n' + this.content;
-
-    }
+                this.content;
 
     FeedUtils.log.trace("FeedItem.writeToFolder: " + this.identity +
                         " is " + source.length + " characters long");
@@ -412,7 +380,8 @@ FeedItem.prototype =
     msgFolder.gettingNewMessages = true;
     // Source is a unicode string, we want to save a char * string in
     // the original charset. So convert back.
-    folder.addMessage(this.mUnicodeConverter.ConvertFromUnicode(source));
+    let msgDBHdr = folder.addMessage(this.mUnicodeConverter.ConvertFromUnicode(source));
+    msgDBHdr.OrFlags(Ci.nsMsgMessageFlags.FeedMsg);
     msgFolder.gettingNewMessages = false;
   },
 
@@ -450,11 +419,12 @@ FeedItem.prototype =
 
 // A feed enclosure is to RSS what an attachment is for e-mail.  We make
 // enclosures look like attachments in the UI.
-function FeedEnclosure(aURL, aContentType, aLength)
+function FeedEnclosure(aURL, aContentType, aLength, aTitle)
 {
   this.mURL = aURL;
   this.mContentType = aContentType;
   this.mLength = aLength;
+  this.mTitle = aTitle;
 
   // Generate a fileName from the URL.
   if (this.mURL)
@@ -478,6 +448,7 @@ FeedEnclosure.prototype =
   mContentType: "",
   mLength: 0,
   mFileName: "",
+  mTitle: "",
   ENCLOSURE_BOUNDARY_PREFIX: "--------------", // 14 dashes
 
   // Returns a string that looks like an e-mail attachment which represents
@@ -487,11 +458,10 @@ FeedEnclosure.prototype =
     return '\n' +
       this.ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '\n' +
       'Content-Type: ' + this.mContentType +
-                     '; name="' + this.mFileName +
+                     '; name="' + (this.mTitle || this.mFileName) +
                      (this.mLength ? '"; size=' + this.mLength : '"') + '\n' +
       'X-Mozilla-External-Attachment-URL: ' + this.mURL + '\n' +
       'Content-Disposition: attachment; filename="' + this.mFileName + '"\n\n' +
-      'This MIME attachment is stored separately from the message.\n' +
-      this.ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '--' + '\n';
+      'This MIME attachment is stored separately from the message.\n';
   }
 };

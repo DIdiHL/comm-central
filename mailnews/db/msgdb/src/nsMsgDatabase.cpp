@@ -1,41 +1,7 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is mozilla.org code.
- *
- * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1999
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Pierre Phaneuf <pp@ludusdesign.com>
- *   David Bienvenu <bienvenu@mozilla.org>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either of the GNU General Public License Version 2 or later (the "GPL"),
- * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 // this file implements the nsMsgDatabase interface using the MDB Interface.
 
@@ -126,7 +92,7 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
   NS_ENSURE_ARG(aFolder);
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   nsCOMPtr<nsIMsgIncomingServer> incomingServer;
-  nsCOMPtr <nsILocalFile> summaryFilePath;
+  nsCOMPtr <nsIFile> summaryFilePath;
 
   nsresult rv = aFolder->GetServer(getter_AddRefs(incomingServer));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -209,7 +175,7 @@ NS_IMETHODIMP nsMsgDBService::AsyncOpenFolderDB(nsIMsgFolder *aFolder,
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   nsresult rv = aFolder->GetMsgStore(getter_AddRefs(msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsILocalFile> summaryFilePath;
+  nsCOMPtr <nsIFile> summaryFilePath;
   rv = msgStore->GetSummaryFile(aFolder, getter_AddRefs(summaryFilePath));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -285,9 +251,9 @@ NS_IMETHODIMP nsMsgDBService::OpenMore(nsIMsgDatabase *aDB,
       NS_ENSURE_TRUE(mdbFactory, NS_ERROR_FAILURE);
       ret = mdbFactory->ThumbToOpenStore(msgDatabase->m_mdbEnv, msgDatabase->m_thumb, &msgDatabase->m_mdbStore);
       msgDatabase->m_thumb = nsnull;
-      nsCOMPtr<nsILocalFile> folderPath;
+      nsCOMPtr<nsIFile> folderPath;
       nsresult rv = msgDatabase->m_folder->GetFilePath(getter_AddRefs(folderPath));
-      nsCOMPtr <nsILocalFile> summaryFile;
+      nsCOMPtr <nsIFile> summaryFile;
       rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
 
       if (NS_SUCCEEDED(ret))
@@ -347,7 +313,7 @@ void nsMsgDBService::FinishDBOpen(nsIMsgFolder *aFolder, nsMsgDatabase *aMsgDB)
 // having a corresponding nsIMsgFolder object.  This happens in a few
 // situations, including imap folder discovery, compacting local folders,
 // and copying local folders.
-NS_IMETHODIMP nsMsgDBService::OpenMailDBFromFile(nsILocalFile *aFolderName,
+NS_IMETHODIMP nsMsgDBService::OpenMailDBFromFile(nsIFile *aFolderName,
                                                  nsIMsgFolder *aFolder,
                                                  bool aCreate,
                                                  bool aLeaveInvalidDB,
@@ -356,7 +322,7 @@ NS_IMETHODIMP nsMsgDBService::OpenMailDBFromFile(nsILocalFile *aFolderName,
   if (!aFolderName)
     return NS_ERROR_NULL_POINTER;
 
-  nsCOMPtr <nsILocalFile>  dbPath;
+  nsCOMPtr <nsIFile>  dbPath;
   nsresult rv = GetSummaryFileLocation(aFolderName, getter_AddRefs(dbPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -389,7 +355,7 @@ NS_IMETHODIMP nsMsgDBService::CreateNewDB(nsIMsgFolder *aFolder,
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   rv = aFolder->GetMsgStore(getter_AddRefs(msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr<nsILocalFile> summaryFilePath;
+  nsCOMPtr<nsIFile> summaryFilePath;
   rv = msgStore->GetSummaryFile(aFolder, getter_AddRefs(summaryFilePath));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -960,7 +926,7 @@ nsMsgDatabase::CleanupCache()
 //----------------------------------------------------------------------
 // FindInCache - this addrefs the db it finds.
 //----------------------------------------------------------------------
-nsMsgDatabase* nsMsgDatabase::FindInCache(nsILocalFile *dbName)
+nsMsgDatabase* nsMsgDatabase::FindInCache(nsIFile *dbName)
 {
   nsTArray<nsMsgDatabase*>* dbCache = GetDBCache();
   PRUint32 length = dbCache->Length();
@@ -984,19 +950,19 @@ nsMsgDatabase* nsMsgDatabase::FindInCache(nsILocalFile *dbName)
 //----------------------------------------------------------------------
 nsIMsgDatabase* nsMsgDatabase::FindInCache(nsIMsgFolder *folder)
 {
-  nsCOMPtr<nsILocalFile> folderPath;
+  nsCOMPtr<nsIFile> folderPath;
 
   nsresult rv = folder->GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, nsnull);
 
-  nsCOMPtr <nsILocalFile> summaryFile;
+  nsCOMPtr <nsIFile> summaryFile;
   rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
   NS_ENSURE_SUCCESS(rv, nsnull);
 
   return (nsIMsgDatabase *) FindInCache(summaryFile);
 }
 
-bool nsMsgDatabase::MatchDbName(nsILocalFile *dbName)  // returns true if they match
+bool nsMsgDatabase::MatchDbName(nsIFile *dbName)  // returns true if they match
 {
   nsCString dbPath;
   dbName->GetNativePath(dbPath);
@@ -1140,14 +1106,14 @@ void nsMsgDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
 // aLeaveInvalidDB: true if caller wants back a db even out of date.
 // If so, they'll extract out the interesting info from the db, close it,
 // delete it, and then try to open the db again, prior to reparsing.
-nsresult nsMsgDatabase::Open(nsILocalFile *aFolderName, bool aCreate,
+nsresult nsMsgDatabase::Open(nsIFile *aFolderName, bool aCreate,
                              bool aLeaveInvalidDB)
 {
   return nsMsgDatabase::OpenInternal(aFolderName, aCreate, aLeaveInvalidDB,
                                      true /* open synchronously */);
 }
 
-nsresult nsMsgDatabase::OpenInternal(nsILocalFile *summaryFile, bool aCreate,
+nsresult nsMsgDatabase::OpenInternal(nsIFile *summaryFile, bool aCreate,
                                      bool aLeaveInvalidDB, bool sync)
 {
   nsCAutoString summaryFilePath;
@@ -1180,7 +1146,7 @@ nsresult nsMsgDatabase::OpenInternal(nsILocalFile *summaryFile, bool aCreate,
 }
 
 nsresult nsMsgDatabase::CheckForErrors(nsresult err, bool sync,
-                                       nsILocalFile *summaryFile)
+                                       nsIFile *summaryFile)
 {
   nsCOMPtr<nsIDBFolderInfo> folderInfo;
   bool summaryFileExists;
@@ -1383,11 +1349,11 @@ NS_IMETHODIMP nsMsgDatabase::ForceFolderDBClosed(nsIMsgFolder *aFolder)
 {
   NS_ENSURE_ARG(aFolder);
 
-  nsCOMPtr<nsILocalFile> folderPath;
+  nsCOMPtr<nsIFile> folderPath;
   nsresult rv = aFolder->GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsILocalFile> dbPath;
+  nsCOMPtr <nsIFile> dbPath;
   rv = GetSummaryFileLocation(folderPath, getter_AddRefs(dbPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3103,6 +3069,7 @@ NS_IMETHODIMP nsMsgDatabase::ListAllKeys(nsIMsgKeyArray *aKeys)
 
   if (m_mdbAllMsgHeadersTable)
   {
+    mdb_id largestId = 0;
     PRUint32 numMsgs = 0;
     m_mdbAllMsgHeadersTable->GetCount(GetEnv(), &numMsgs);
     aKeys->SetCapacity(numMsgs);
@@ -3118,9 +3085,18 @@ NS_IMETHODIMP nsMsgDatabase::ListAllKeys(nsIMsgKeyArray *aKeys)
       if (outPos < 0 || outOid.mOid_Id == (mdb_id) -1)
         break;
       if (NS_SUCCEEDED(rv))
-        aKeys->AppendElement(outOid.mOid_Id);
+      {
+        if (outOid.mOid_Id < largestId)
+        {
+          aKeys->InsertElementSorted(outOid.mOid_Id);
+        }
+        else
+        {
+          largestId = outOid.mOid_Id;
+          aKeys->AppendElement(outOid.mOid_Id);
+        }
+      }
     }
-    aKeys->Sort();
   }
   return rv;
 }

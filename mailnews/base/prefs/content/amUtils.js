@@ -1,40 +1,7 @@
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is mozilla.org code.
- *
- * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Varada Parthasarathi <varada@netscape.com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either of the GNU General Public License Version 2 or later (the "GPL"),
- * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 /* Prerequisites:
    gServer - server.incomingServer defined in the calling page
  */
@@ -42,12 +9,11 @@
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
-const nsIFilePicker = Components.interfaces.nsIFilePicker;
-const nsILocalFile = Components.interfaces.nsILocalFile;
-const LOCALFILE_CTRID = "@mozilla.org/file/local;1";
-
 function BrowseForLocalFolders()
 {
+  const nsIFilePicker = Components.interfaces.nsIFilePicker;
+  const nsILocalFile = Components.interfaces.nsILocalFile;
+
   var currentFolderTextBox = document.getElementById("server.localPath");
   var fp = Components.classes["@mozilla.org/filepicker;1"]
                      .createInstance(nsIFilePicker);
@@ -57,7 +23,7 @@ function BrowseForLocalFolders()
                   .getAttribute("filepickertitle"),
           nsIFilePicker.modeGetFolder);
 
-  var currentFolder = Components.classes[LOCALFILE_CTRID]
+  var currentFolder = Components.classes["@mozilla.org/file/local;1"]
                                 .createInstance(nsILocalFile);
   currentFolder.initWithPath(currentFolderTextBox.value);
   fp.displayDirectory = currentFolder;
@@ -109,16 +75,17 @@ function trim(string)
 /**
  * Return server/folder name formatted with server name if needed.
  *
- * @param target  nsIMsgFolder to format name for
- *                If target.isServer then only its name is returned.
- *                Otherwise return the name as <foldername> on <servername>.
- **/
-function prettyFolderName(target)
+ * @param aTargetFolder  nsIMsgFolder to format name for
+ *                       If target.isServer then only its name is returned.
+ *                       Otherwise return the name as "<foldername> on <servername>".
+ */
+function prettyFolderName(aTargetFolder)
 {
-  if (target.isServer)
-    return target.prettyName;
+  if (aTargetFolder.isServer)
+    return aTargetFolder.prettyName;
 
   return document.getElementById("bundle_messenger")
                  .getFormattedString("verboseFolderFormat",
-                                     [target.prettyName, target.server.prettyName]);
+                                     [aTargetFolder.prettyName,
+                                      aTargetFolder.server.prettyName]);
 }

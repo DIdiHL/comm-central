@@ -161,7 +161,7 @@ function toggleExpectReplyCheckbox() {
       checkbox.setAttribute("checked", "true");
       menuitem.setAttribute("disabled", "false");
       //update the hdr view pane
-      replyManagerHdrViewWdiget.hdrViewDeployItems();
+      replyManagerHdrViewWidget.hdrViewDeployItems();
     }
   }
 }

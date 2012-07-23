@@ -7,6 +7,7 @@ Cu.import("resource:///modules/gloda/public.js");
 Cu.import("resource:///modules/gloda/gloda.js");
 Cu.import("resource:///modules/gloda/index_msg.js");
 Cu.import("resource:///modules/gloda/indexer.js");
+Cu.import("resource:///modules/Services.jsm");
 
 var MODULE_NAME = "replymanager-helpers";
 var RELATIVE_ROOT = '../shared-modules'
@@ -29,7 +30,8 @@ function installInto(module) {
   module.assert_element_not_collapsed = assert_element_not_collapsed;
   module.wait_for_indexing = wait_for_indexing;
   module.assertionHelper = new assertionHelperClass();
-  module.wait_for_query_to_complete = wait_for_query_to_complete;
+  module.plan_for_reply_manager_update = plan_for_reply_manager_update;
+  module.wait_for_reply_manager_update = wait_for_reply_manager_update;
 }
 
 /* Assert that the element is disabled
@@ -37,11 +39,11 @@ function installInto(module) {
  * @param aWhy The error message in case of failure
  */
 function assert_element_disabled(aElt) {
-  mc.assertJSProperty(aElt, "disabled", "true");
+  mc.assertDOMProperty(aElt, "disabled", "true");
 }
 
 function assert_element_not_disabled(aElt) {
-  mc.assertJSProperty(aElt, "disabled", "false");
+  mc.assertDOMProperty(aElt, "disabled", "false");
 }
 
 /* Asser that the element is collapsed
@@ -89,11 +91,27 @@ function wait_for_indexing(aMsgHdrs) {
 
 /* We need to wait for the Gloda query to finish changing
    * the elements. */
-function wait_for_query_to_complete() {
-  mc.waitFor(function() {
-    let boxNode = mc.eid("allRepliedBox").node;
-    return !boxNode.updatingHdrView;
-  });
+function plan_for_reply_manager_update() {
+  let o = {
+    value: null,
+  };
+  
+  let observer = {
+    observe: function(aSubject, aTopic, aData) {
+      if (aTopic == "ReplyManager" && aData == "Updated") 
+        o.value = true;
+      else
+        o.value = false;
+      Services.obs.removeObserver(observer);
+    },
+  };
+  Services.obs.addObserver(observer, "ReplyManager", false);
+  
+  return o;
+}
+
+function wait_for_reply_manager_update(observer) {
+  mc.waitFor(function() observer.value != null);
 }
 
 /* an assertionHelper instance contains all elements required for
@@ -112,6 +130,8 @@ function assertionHelperClass() {
   this.otherActionsButton = mc.eid("otherActionsButton");
   this.toggleExpectReply = mc.eid("hdrViewExpectReplyCheckbox");
   this.modifyExpectReplyItem = mc.eid("hdrViewModifyExpectReplyItem");
+  this.replyManagerMailContextMenu = mc.eid("replyManagerMailContextMenu");
+  this.mailContextToggleExpectReply = mc.eid("expectReplyCheckbox"); 
 }
 
 assertionHelperClass.prototype = {
@@ -126,6 +146,9 @@ assertionHelperClass.prototype = {
   otherActionsButton: null,
   toggleExpectReply: null,
   modifyExpectReplyItem: null,
+  replyManagerMailContextMenu: null,
+  mailContextToggleExpectReply: null,
+  
 
   /* Assert that both the allRepliedBox and the notAllRepliedBox are
    * collapsed. This is the case when msgHdr.isExpectReply is false*/

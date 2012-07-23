@@ -47,8 +47,6 @@ var gMessenger = Components.classes["@mozilla.org/messenger;1"]
 
 var gSpellChecker = new InlineSpellChecker();
 
-var gMsgID;
-
 /**
  * Global variables, need to be re-initialized every time mostly because we need to release them when the window close
  */

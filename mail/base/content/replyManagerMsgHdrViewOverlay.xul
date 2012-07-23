@@ -14,7 +14,7 @@
 
 <commandset>
   <command id="cmd_hdrViewToggleExpectReply" oncommand="toggleHdrViewExpectReplyCheckbox();"/>
-  <command id="cmd_hdrViewModifyExpectReply" oncommand="hdrViewModifyExpectReply();"/>
+  <command id="cmd_hdrViewModifyExpectReply" disabled="true" oncommand="hdrViewModifyExpectReply();"/>
   <command id="cmd_hdrViewStartComposeReminder" oncommand="startComposeReminder();"/>
   <command id="cmd_replyManagerShowConversation" 
            oncommand="gConversationOpener.openConversationForMessages(gFolderDisplay.selectedMessages);"/>

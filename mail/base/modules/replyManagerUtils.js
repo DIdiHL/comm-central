@@ -204,13 +204,11 @@ var replyManagerUtils = {
     let mailtoURL = "mailto:" + recipients + "?subject=" + aGlodaMsg._subject;
     let boilerplate = gPrefBranch.getCharPref("mail.replymanager.boilerplate");
     // mailto uses "%0D%0A" hex sequence to represent newlines
-    boilerplate = boilerplate.replace(RegExp("\n", "g"), "%0D%0A");
-    
+    boilerplate = boilerplate.replace(/\n/g, "%0D%0A");
+    boilerplate = boilerplate.replace(/&/g, "%26");
     mailtoURL += "&body=" + boilerplate;
-    let msgComposeService = Cc["@mozilla.org/messengercompose;1"]
-                             .getService(Components.interfaces.nsIMsgComposeService);
     let aURI = Services.io.newURI(mailtoURL, null, null);
-    msgComposeService.OpenComposeWindowWithURI(null, aURI);
+    MailServices.compose.OpenComposeWindowWithURI(null, aURI);
   }
 };
 

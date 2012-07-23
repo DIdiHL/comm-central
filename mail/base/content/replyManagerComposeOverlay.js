@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 Components.utils.import("resource:///modules/replyManagerUtils.js");
 
+var gMsgID;
+
 function onLoad() {
   gMsgCompose.addMsgSendListener(replyManagerSendListener);//add reply manager send listener
   gMsgCompose.RegisterStateListener(replyManagerComposeStateListener);//register reply manager compose state listener
@@ -59,3 +61,4 @@ function toggleOtherReplyManagerElements()
 
 window.addEventListener("load", onLoad);
 window.addEventListener("unload", onUnload);
+document.getElementById("msgcomposeWindow").addEventListener("compose-window-reopen", onLoad);

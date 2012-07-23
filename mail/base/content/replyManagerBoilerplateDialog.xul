@@ -15,18 +15,15 @@ ondialogcancel="return doCancel();"
 flex="1">
 <script type="text/javascript">
 <![CDATA[
-var prefBranch;
+Components.utils.import("resource:///modules/Services.jsm");
 var textbox;
 function onLoad() {
-  prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                .getService(Components.interfaces.nsIPrefService)
-                .getBranch("mail.replymanager.");
   textbox = document.getElementById("boilerplateTextbox");
-  textbox.value = prefBranch.getCharPref("boilerplate");
+  textbox.value = Services.prefs.getCharPref("mail.replymanager.boilerplate");
 }
 
 function doOK() {
-  prefBranch.setCharPref("boilerplate", textbox.value);
+  Services.prefs.setCharPref("mail.replymanager.boilerplate", textbox.value);
   return true;
 }
 

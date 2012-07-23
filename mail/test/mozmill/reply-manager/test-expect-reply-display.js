@@ -37,10 +37,6 @@ function setupModule(module) {
     ac.check(checkbox, true);
   };
   open_pref_window("paneAdvanced", checkGloda);
-  let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
-  let glodaEnabled = prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
-  prefBranch.setBoolPref("mailnews.database.global.logging.console", true);
   
   folder = create_folder("reply-manager-test-folder");
   
@@ -91,11 +87,11 @@ function test_expect_reply_within_deadline() {
     let acceptButton = new elib.Elem(curDialog.getButton("accept"));
     ac.click(acceptButton);
   });
+  let observer = plan_for_reply_manager_update();
   mc.click(assertionHelper.otherActionsButton);
   mc.click(assertionHelper.toggleExpectReply);
   wait_for_modal_dialog("replyManagerDateDialog");
-  
-  wait_for_query_to_complete();
+  wait_for_reply_manager_update(observer);
   
   //The expect reply date is today and not all replied
   assertionHelper.assert_within_deadline_not_all_replied();
@@ -111,11 +107,11 @@ function test_expect_reply_past_deadline() {
     datePicker.value = "2011-01-01";
     ac.click(acceptButton);
   });
+  let observer = plan_for_reply_manager_update();
   mc.click(assertionHelper.otherActionsButton);
   mc.click(assertionHelper.modifyExpectReplyItem);
   wait_for_modal_dialog("replyManagerDateDialog");
-  
-  wait_for_query_to_complete();
+  wait_for_reply_manager_update(observer);  
   
   assertionHelper.assert_past_deadline_not_all_replied();
 }
@@ -135,9 +131,37 @@ function test_all_replied() {
   let aReplyHdr = select_click_row(2);
   wait_for_indexing([aReplyHdr]);
   
+  let observer = plan_for_reply_manager_update();
   let curMessage = select_click_row(0);
-  
-  wait_for_query_to_complete();
+  wait_for_reply_manager_update(observer);
   
   assertionHelper.assert_allRepliedBox_shown();
+}
+
+/* Test that modifying the expect-reply status of a message other
+ * than the displayed on will not affect the one currently being
+ * displayed. */
+function test_modify_non_displayed_email() {
+  // first unmark the current message
+  mc.click(assertionHelper.otherActionsButton);
+  mc.click(assertionHelper.toggleExpectReply);
+  assertionHelper.assert_both_collapsed();
+  
+  let aReplyHdr = right_click_on_row(2);
+  /* set isExpectReply to true and the expect reply date to
+   * today's date. */
+  plan_for_modal_dialog("replyManagerDateDialog", function(ac){
+    let curDialog = ac.window.document.getElementById("replyManagerDateDialog");
+    let acceptButton = new elib.Elem(curDialog.getButton("accept"));
+    ac.click(acceptButton);
+  });
+  let observer = plan_for_reply_manager_update();
+  mc.click(assertionHelper.replyManagerMailContextMenu);
+  mc.click(assertionHelper.mailContextToggleExpectReply);
+  wait_for_modal_dialog("replyManagerDateDialog");
+  wait_for_reply_manager_update(observer);  
+
+  /* assert that marking a non-displayed message expect-reply won't
+   * affect the current message header pane. */
+  assertionHelper.assert_both_collapsed();
 }

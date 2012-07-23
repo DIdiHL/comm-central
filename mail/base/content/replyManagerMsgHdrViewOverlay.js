@@ -3,6 +3,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 Components.utils.import("resource:///modules/replyManagerUtils.js");
 Components.utils.import("resource:///modules/StringBundle.js");
+Components.utils.import("resource:///modules/Services.jsm");
 
 var replyManagerHdrViewListener = {
   displayedMessage: null,
@@ -126,15 +127,6 @@ var replyManagerHdrViewWidget = {
   notAllRepliedShowNotRepliedLabel: null,
   pastDeadlineShowNotRepliedLabel: null,
   
-  /* Many elements are updated through an asynchronous Gloda query. While testing
-   * we need to wait for the query to complete before proceeding. This method adds
-   * a js property to the allRepliedBox (the choice is arbitrary) to indicate 
-   * whether a query is going on.*/
-  updatingHdrView: function(bUpdating) {
-    let box = document.getElementById("allRepliedBox");
-    box.updatingHdrView = bUpdating;
-  },
-  
   init: function() {
     this.replyManagerStrings = new StringBundle("chrome://messenger/locale/replyManager.properties");
   
@@ -174,15 +166,15 @@ var replyManagerHdrViewWidget = {
     
     if (replyManagerUtils.isHdrExpectReply(msgHdr)) {
       this.expectReplyCheckbox.setAttribute("checked", "true");
-      this.modifyCommand.disabled = false;
+      this.modifyCommand.setAttribute("disabled", "false");
       this.expectReplyDateLabel.textContent += msgHdr.getStringProperty("ExpectReplyDate") + ".";
-      this.updatingHdrView(true);
       replyManagerUtils.getNotRepliedForHdr(msgHdr, this.chooseIcon.bind(this));
     } else {
       this.expectReplyCheckbox.setAttribute("checked", "false");
-      this.modifyCommand.disabled = true;
+      this.modifyCommand.setAttribute("disabled", "true");
       this.allRepliedBox.collapsed = true;
       this.notAllRepliedBox.collapsed = true;
+      Services.obs.notifyObservers(null, "ReplyManager", "Updated");
     }
   },
   
@@ -256,7 +248,7 @@ var replyManagerHdrViewWidget = {
         this.pastDeadlineShowNotRepliedLabel.collapsed = true;
       }
     }
-    this.updatingHdrView(false);
+    Services.obs.notifyObservers(null, "ReplyManager", "Updated");
   },
 };
 

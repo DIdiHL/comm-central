@@ -3,18 +3,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 Components.utils.import("resource:///modules/replyManagerUtils.js");
 
-var gMsgID;
-
 function onLoad() {
   gMsgCompose.addMsgSendListener(replyManagerSendListener);//add reply manager send listener
-  gMsgCompose.RegisterStateListener(replyManagerComposeStateListener);//register reply manager compose state listener
 }
 
 function onUnload() {
   //remove reply manager send listener
   gMsgCompose.removeMsgSendListener(replyManagerSendListener);
-  //unregister reply manager send listener
-  gMsgCompose.UnregisterStateListener(replyManagerComposeStateListener);
 }
 
 //reply manager send listener
@@ -25,14 +20,26 @@ var replyManagerSendListener = {
   onStatus: function (aMsgID, aMsg) {},
   onStopSending: function (aMsgID, aStatus, aMsg, aReturnFile) {
     //aMsgID starts with a < and ends with a >. Take the substring to strip the brackets.
-    gMsgID = aMsgID.substring(1, aMsgID.length - 1);
+    newMsgID = aMsgID.substring(1, aMsgID.length - 1);
+    let aComposeStateListener = new replyManagerComposeStateListener(newMsgID);
+    gMsgCompose.RegisterStateListener(aComposeStateListener);
   },
   onGetDraftFolderURI: function (aFolderURI) {},
   onSendNotPerformed: function (aMsgID, aStatus) {},
 };
 
-//reply manager compose state listener
-var replyManagerComposeStateListener = {
+
+/* reply manager compose state listener
+ * In order to communicate with the send listener, instead of using a single
+ * listener object, each time the send listener gets notified, a new compse
+ * state listener instance is created. And now no global is needed. */
+function replyManagerComposeStateListener(aMsgID) {
+  this.msgID = aMsgID;
+}
+replyManagerComposeStateListener.prototype = {
+  /* This is the ID of the saved message */
+  msgID: null,
+  
   NotifyComposeFieldsReady: function() {},
 
   NotifyComposeBodyReady: function() {},
@@ -40,13 +47,14 @@ var replyManagerComposeStateListener = {
   ComposeProcessDone: function(aResult) {
     let folder = MailUtils.getFolderForURI(gMsgCompose.savedFolderURI);
     let msgDB = folder.msgDatabase;
-    let savedMsgHdr = msgDB.getMsgHdrForMessageID(gMsgID);
+    let savedMsgHdr = msgDB.getMsgHdrForMessageID(this.msgID);
     let toggle = document.getElementById("other-elements-toggle").checked;
     let dateStr = document.getElementById("reminder-date").value;
     if (savedMsgHdr != null && toggle)
     {
       replyManagerUtils.setExpectReplyForHdr(savedMsgHdr, dateStr);
     }
+    gMsgCompose.UnregisterStateListener(this);
   },
 
   SaveInFolderDone: function(folderURI) {}

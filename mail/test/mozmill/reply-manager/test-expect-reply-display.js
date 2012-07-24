@@ -32,11 +32,7 @@ function setupModule(module) {
   rh.installInto(module);
   
   //enable Gloda for the test set
-  let checkGloda = function(ac) {
-    let checkbox = ac.eid("enableGloda");
-    ac.check(checkbox, true);
-  };
-  open_pref_window("paneAdvanced", checkGloda);
+  Services.prefs.setBoolPref("mailnews.database.global.indexer.enabled", true);
   
   folder = create_folder("reply-manager-test-folder");
   

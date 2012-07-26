@@ -762,8 +762,3 @@ pref("purple.conversations.im.send_typing", true);
 pref("mail.cloud_files.enabled", true);
 pref("mail.cloud_files.inserted_urls.footer.link", "http://www.getthunderbird.com");
 pref("mail.cloud_files.learn_more_url", "https://support.mozillamessaging.com/kb/filelink-large-attachments");
-
-//Reply Manager
-pref("mail.replymanager.create_calendar_event_enabled", false);
-  //This is the boilerplateused that will be filled into the content area in the compose window
-pref("mail.replymanager.boilerplate", "");

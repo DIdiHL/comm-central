@@ -6,9 +6,11 @@
 
 <!DOCTYPE overlay [
     <!ENTITY % lightningDTD SYSTEM "chrome://lightning/locale/lightning.dtd">
-    <!ENTITY % preferencesDTD SYSTEM "chrome://calendar/locale/preferences/preferences.dtd">
+    <!ENTITY % preferencesDTD SYSTEM "chrome://calendar/locale/preferences/preferences.dtd">\
+    <!ENTITY % replyManagerDTD SYSTEM "chrome://lightning/locale/replyManager.dtd">
     %lightningDTD;
     %preferencesDTD;
+    %replyManagerDTD;
 ]>
 
 <?xml-stylesheet href="chrome://lightning/skin/lightning.css"?>
@@ -20,7 +22,8 @@
                   label="&lightning.preferencesLabel;"
                   onpaneload="gCalendarGeneralPane.init(); gAlarmsPane.init(); 
                               gCategoriesPane.init(); gViewsPane.init();
-                              gTimezonesPane.init(); gLightningPane.init();">
+                              gTimezonesPane.init(); gLightningPane.init();
+                              gReplyManagerPane.init();">
             <preferences>
                 <preference id="calendar.preferences.lightning.selectedTabIndex"
                             name="calendar.preferences.lightning.selectedTabIndex"
@@ -40,6 +43,8 @@
                          label="&paneViews.title;"/>
                     <tab id="calPreferencesTabTimezones"
                          label="&paneTimezones.title;"/>
+                    <tab id="calPreferencesReplyManager"
+                         label="&paneReplyManager.title;"/>
                 </tabs>
                 <tabpanels flex="1">
                     <tabpanel orient="vertical">
@@ -56,6 +61,9 @@
                     </tabpanel>
                     <tabpanel orient="vertical">
                         <vbox id="calPreferencesBoxTimezones"/>
+                    </tabpanel>
+                    <tabpanel orient="vertical">
+                        <vbox id="calPreferencesBoxReplyManager"/>
                     </tabpanel>
                 </tabpanels>
             </tabbox>

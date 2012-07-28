@@ -27,6 +27,10 @@ lightning.jar:
 % overlay chrome://lightning/content/lightning-standalone.xul chrome://lightning/content/messenger-overlay-sidebar.xul
 % overlay chrome://calendar/content/calendarCreation.xul chrome://lightning/content/lightning-calendar-creation.xul
 % overlay chrome://calendar/content/calendar-properties-dialog.xul chrome://lightning/content/lightning-calendar-properties.xul
+% overlay chrome://messenger/content/msgHdrViewOverlay.xul chrome://lightning/content/replyManagerMsgHdrViewOverlay.xul
+% overlay chrome://messenger/content/mailWindowOverlay.xul chrome://lightning/content/replyManagerMailWindowOverlay.xul
+% overlay chrome://messenger/content/messengercompose/messengercompose.xul chrome://lightning/content/replyManagerComposeOverlay.xul
+% overlay chrome://messenger/content/preferences/preferences.xul chrome://lightning/content/replyManagerPreferences.xul
 % override chrome://lightning/skin/accountCentral.css chrome://lightning/skin/suite-accountCentral.css application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
 % content lightning %content/lightning/
     content/lightning/imip-bar.js                          (content/imip-bar.js)
@@ -52,6 +56,16 @@ lightning.jar:
     content/lightning/suite-overlay-preferences.xul        (content/suite-overlay-preferences.xul)
     content/lightning/suite-overlay-sidebar.js             (content/suite-overlay-sidebar.js)
     content/lightning/suite-overlay-sidebar.xul            (content/suite-overlay-sidebar.xul)
+    content/lightning/replyManagerMsgHdrViewOverlay.xul    (content/replymanager/replyManagerMsgHdrViewOverlay.xul)
+    content/lightning/replyManagerMsgHdrViewOverlay.js     (content/replymanager/replyManagerMsgHdrViewOverlay.js)
+    content/lightning/replyManagerMailWindowOverlay.xul    (content/replymanager/replyManagerMailWindowOverlay.xul)
+    content/lightning/replyManagerMailWindowOverlay.js     (content/replymanager/replyManagerMailWindowOverlay.js)
+    content/lightning/replyManagerDateDialog.xul           (content/replymanager/replyManagerDateDialog.xul)
+    content/lightning/replyManagerShowAddressDialog.xul    (content/replymanager/replyManagerShowAddressDialog.xul)
+    content/lightning/replyManagerComposeOverlay.xul       (content/replymanager/replyManagerComposeOverlay.xul)
+    content/lightning/replyManagerComposeOverlay.js        (content/replymanager/replyManagerComposeOverlay.js)
+    content/lightning/replyManagerPreferences.xul          (content/replymanager/replyManagerPreferences.xul)
+    content/lightning/replyManagerPreferences.js           (content/replymanager/replyManagerPreferences.js)
 % skin lightning classic/1.0 %skin/lightning/
 % style chrome://global/content/customizeToolbar.xul chrome://lightning/skin/lightning-toolbar.css
     skin/lightning/accountCentral.css                      (themes/@THEME@/accountCentral.css)
@@ -62,6 +76,7 @@ lightning.jar:
     skin/lightning/common/imip.css                         (themes/common/imip.css)
     skin/lightning/suite-accountCentral.css                (themes/common/suite-accountCentral.css)
     skin/lightning/mode-switch-icons.png                   (themes/common/images/mode-switch-icons.png)
+    skin/lightning/replyManager.css                        (themes/common/replyManager.css)
 #ifdef XP_WIN
     skin/lightning/mode-switch-icons-aero.png              (themes/winstripe/images/mode-switch-icons-aero.png)
     skin/lightning/mode-switch-icons-inverted.png          (themes/winstripe/images/mode-switch-icons-inverted.png)

@@ -9,3 +9,5 @@ lightning-@AB_CD@.jar:
   locale/@AB_CD@/lightning/lightning.dtd         (%chrome/lightning/lightning.dtd)
   locale/@AB_CD@/lightning/lightning-toolbar.dtd (%chrome/lightning/lightning-toolbar.dtd)
   locale/@AB_CD@/lightning/lightning.properties  (%chrome/lightning/lightning.properties)
+  locale/@AB_CD@/lightning/replyManager.dtd      (%chrome/lightning/replyManager.dtd)
+  locale/@AB_CD@/lightning/replyManager.properties (%chrome/lightning/replyManager.properties)

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this file,
+     You can obtain one at http://mozilla.org/MPL/2.0/.-->
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<!DOCTYPE dialog  SYSTEM "chrome://lightning/locale/replyManager.dtd">
+
+<dialog id="replyManagerDateDialog" title="&replyManagerDateDialog.title;" 
+xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+onload="onLoad();"
+buttons="accept,cancel"
+buttonlabelaccept="&replyManagerAcceptButton.label;"
+buttonlabelcancel="&replyManagerCancelButton.label;"
+ondialogaccept="return doOK();"
+ondialogcancel="return doCancel();"
+flex="1">
+
+<script type="text/javascript">
+<![CDATA[
+/* If the message is expecting replies we need to set the datepicker
+ * the value of the expect reply date for convenience.
+ */
+function onLoad() {
+  let header = window.arguments[0].inMsgHdr;
+  if (header.isExpectReply) {
+    let datepicker = document.getElementById("replyManagerDatePicker");
+    datepicker.value = header.getStringProperty("ExpectReplyDate");
+  }
+}
+  
+function doOK() {
+  let params = window.arguments[0];
+  let datestr = document.getElementById("replyManagerDatePicker").value;
+  params.outDate = datestr;
+  return true;
+}
+
+function doCancel() {
+  return true;
+}
+]]>
+</script>
+
+<dialogheader title="&replyManagerDateDialogHeader.title;"/>
+  <datepicker id="replyManagerDatePicker" type="grid"/>
+</dialog>

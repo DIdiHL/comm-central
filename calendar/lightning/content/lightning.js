@@ -123,3 +123,10 @@ pref("calendar.network.multirealm", false);
 
 // Disable use of system colors in minimonth and calendar views
 pref("calendar.view.useSystemColors", false);
+
+//Reply Manager
+pref("calendar.replymanager.enabled", false);
+  //Create an associated calendar event when a email is marked expecting reply
+pref("calendar.replymanager.create_calendar_event_enabled", false);
+  //This is the boilerplateused that will be filled into the content area in the compose window
+pref("calendar.replymanager.boilerplate", "");

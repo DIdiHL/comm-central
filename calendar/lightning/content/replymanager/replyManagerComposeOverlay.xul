@@ -2,6 +2,8 @@
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<?xml-stylesheet href="chrome://calendar/content/widgets/calendar-widget-bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/content/datetimepickers/datetimepickers.css" type="text/css"?>
 <!DOCTYPE window [
   <!ENTITY % replyManagerDTD SYSTEM "chrome://lightning/locale/replyManager.dtd">
   %replyManagerDTD;
@@ -11,6 +13,7 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script type="application/javascript" src="chrome://lightning/content/replyManagerComposeOverlay.js"/>
+<script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
 
 <commandset>
   <command id="cmd_toggle_other_replymanager_elements" oncommand="toggleOtherReplyManagerElements();"/>
@@ -20,7 +23,7 @@
   <hbox id="replymanager-hbox">
     <checkbox id="other-elements-toggle" label="&other-elements-toggle.label;" checked="false"
               command="cmd_toggle_other_replymanager_elements"/>
-    <datepicker id="reminder-date" type="popup" disabled="true"/>
+    <datepicker id="reminder-date" disabled="true"/>
   </hbox>
 </toolbox>
 </overlay>

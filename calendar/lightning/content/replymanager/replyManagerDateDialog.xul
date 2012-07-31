@@ -3,35 +3,43 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this file,
      You can obtain one at http://mozilla.org/MPL/2.0/.-->
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/content/widgets/calendar-widget-bindings.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/widgets/minimonth.css" type="text/css"?>
 <!DOCTYPE dialog  SYSTEM "chrome://lightning/locale/replyManager.dtd">
 
 <dialog id="replyManagerDateDialog" title="&replyManagerDateDialog.title;" 
-xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-onload="onLoad();"
-buttons="accept,cancel"
-buttonlabelaccept="&replyManagerAcceptButton.label;"
-buttonlabelcancel="&replyManagerCancelButton.label;"
-ondialogaccept="return doOK();"
-ondialogcancel="return doCancel();"
-flex="1">
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="onLoad();"
+        buttons="accept,cancel"
+        buttonlabelaccept="&replyManagerAcceptButton.label;"
+        buttonlabelcancel="&replyManagerCancelButton.label;"
+        ondialogaccept="return doOK();"
+        ondialogcancel="return doCancel();"
+        flex="1">
 
+<script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+<script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
 <script type="text/javascript">
 <![CDATA[
+Components.utils.import("resource://calendar/modules/replyManagerUtils.jsm");
 /* If the message is expecting replies we need to set the datepicker
  * the value of the expect reply date for convenience.
  */
 function onLoad() {
   let header = window.arguments[0].inMsgHdr;
-  if (header.isExpectReply) {
+  if (replyManagerUtils.isHdrExpectReply(header)) {
     let datepicker = document.getElementById("replyManagerDatePicker");
-    datepicker.value = header.getStringProperty("ExpectReplyDate");
+    let aDate = new Date(header.getStringProperty("ExpectReplyDate"));
+    datepicker.mValue = aDate;
+    datepicker.showMonth(aDate);
   }
 }
   
 function doOK() {
   let params = window.arguments[0];
-  let datestr = document.getElementById("replyManagerDatePicker").value;
-  params.outDate = datestr;
+  let aDate = document.getElementById("replyManagerDatePicker").value;
+  /* This substring has the format YYYY-MM-DD */
+  params.outDate = aDate.toISOString().substr(0, 10);
   return true;
 }
 
@@ -42,5 +50,5 @@ function doCancel() {
 </script>
 
 <dialogheader title="&replyManagerDateDialogHeader.title;"/>
-  <datepicker id="replyManagerDatePicker" type="grid"/>
+<minimonth id="replyManagerDatePicker"/>
 </dialog>

@@ -57,7 +57,14 @@ replyManagerComposeStateListener.prototype = {
     let msgDB = folder.msgDatabase;
     let savedMsgHdr = msgDB.getMsgHdrForMessageID(this.msgID);
     let toggle = document.getElementById("other-elements-toggle").checked;
-    let dateStr = document.getElementById("reminder-date").value;
+    let aDate = document.getElementById("reminder-date").value;
+    /* the toISOString method is ignoring timezone offsets so we can't take
+     * the substring from it. We can only manually generate the date string.*/
+    let intDate = aDate.getDate();
+    let intMonth = aDate.getMonth() + 1;
+    let date = (intDate < 10) ? "0" + intDate : "" + intDate;
+    let month = (intMonth < 10) ? "0" + intMonth : "" + intMonth;
+    let dateStr = aDate.getFullYear() + "-" + month + "-" + date;
     if (savedMsgHdr != null && toggle)
     {
       replyManagerUtils.setExpectReplyForHdr(savedMsgHdr, dateStr);

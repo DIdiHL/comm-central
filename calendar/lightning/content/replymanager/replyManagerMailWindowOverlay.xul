@@ -16,6 +16,7 @@
   <command id="cmd_toggleExpectReply" oncommand="toggleExpectReplyCheckbox();"/>
   <command id="cmd_modifyExpectReply" oncommand="modifyExpectReply();"/>
   <command id="cmd_startComposeReminder" oncommand="startComposeReminder();"/>
+  <command id="cmd_viewAllMarkedMessages" oncommand="replyManagerTabOpener.openTab();"/>
 </commandset>
 
 <menupopup id="mailContext">
@@ -27,6 +28,9 @@
                 command="cmd_modifyExpectReply"/>
       <menuitem id="sendReminderItem" label="&replyManagerSendReminderItem.label;"
                 command="cmd_startComposeReminder"/>
+      <menuseparator/>
+      <menuitem id="viewAllMarkedMessages" label="&viewAllMarkedMessages.label;"
+                command="cmd_viewAllMarkedMessages"/>
     </menupopup>
   </menu>
 </menupopup>

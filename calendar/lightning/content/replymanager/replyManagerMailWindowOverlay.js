@@ -15,6 +15,7 @@ function onLoad()
   replyManagerCalendar.ensureCalendarExists();
   replyManagerMailListener.init();
   replyManagerMailContextPrefObserver.onLoad();
+  replyManagerTabOpener.init();
   window.addEventListener("unload", function() {
     replyManagerMailContextPrefObserver.onUnload();
   });
@@ -191,6 +192,33 @@ var replyManagerMailListener = {
       }
     }
   }
+};
+
+var replyManagerTabOpener = {
+  strings: null,
+  
+  init: function() {
+    this.strings = new StringBundle("chrome://lightning/locale/replyManager.properties");
+  },
+  
+  openTab: function() {
+    let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
+    query.isExpectReply(true);
+    let tabTitle = this.strings.getString("replyManagerMailTabTitle");
+    let queryCollection = query.getCollection({
+      onItemsAdded: function() {},
+      onItemsRemoved: function() {},
+      onItemsModified: function() {},
+      onQueryCompleted: function(aCollection) {
+        let tabmail = document.getElementById("tabmail");
+        tabmail.openTab("glodaList", {
+          collection: queryCollection,
+          title: tabTitle,
+          background: false
+        });
+      },
+    });
+  },
 };
 
 window.addEventListener("load", onLoad);

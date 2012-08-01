@@ -272,7 +272,8 @@ var isExpectReply = {
   },
 
   process: function(aGlodaMessage, aRawReps, aIsNew, aCallbackHandle) {
-    aGlodaMessage.isExpectReply = aRawReps.header.isExpectReply;
+    aGlodaMessage.isExpectReply = 
+           replyManagerUtils.isHdrExpectReply(aRawReps.header);
     yield Gloda.kWorkDone;
   }
 };

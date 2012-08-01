@@ -9,13 +9,23 @@ Components.utils.import("resource:///modules/Services.jsm");
 
 function onLoad() 
 {
-  document.getElementById("replyManagerMailContextMenu").hidden =
+  let replyManagerMenu = document.getElementById("replyManagerMailContextMenu");
+  replyManagerMenu.hidden =
          !Services.prefs.getBoolPref("calendar.replymanager.enabled");
   //initialize the replyManagerCalendar module
   replyManagerCalendar.ensureCalendarExists();
   replyManagerMailListener.init();
   replyManagerMailContextPrefObserver.onLoad();
   replyManagerTabOpener.init();
+  //If no email is selected the ReplyManager menu should be hidden
+  document.getElementById("mailContext").addEventListener("popupshowing",
+    function() {
+      if (gFolderDisplay.selectedMessage == null) {
+        replyManagerMenu.hidden = true;
+      } else {
+        replyManagerMenu.hidden = false;
+      }
+    });
   window.addEventListener("unload", function() {
     replyManagerMailContextPrefObserver.onUnload();
   });
@@ -213,6 +223,7 @@ var replyManagerTabOpener = {
         let tabmail = document.getElementById("tabmail");
         tabmail.openTab("glodaList", {
           collection: queryCollection,
+          message: aCollection.items[0],
           title: tabTitle,
           background: false
         });

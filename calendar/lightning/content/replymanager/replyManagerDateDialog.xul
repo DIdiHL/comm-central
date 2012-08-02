@@ -26,6 +26,12 @@ Components.utils.import("resource://calendar/modules/replyManagerUtils.jsm");
  * the value of the expect reply date for convenience.
  */
 function onLoad() {
+  /* The background color of the minimonth-header element is not applied. A workaround is
+   * to hardcode the background color. The color is consistent throughout all platforms. */
+  let minimonth = document.getElementById("replyManagerDatePicker");
+  let mmheader = document.getAnonymousElementByAttribute(minimonth, "anonid", "minimonth-header");
+  mmheader.style.backgroundColor = "#F5F5F6";
+  
   let header = window.arguments[0].inMsgHdr;
   if (replyManagerUtils.isHdrExpectReply(header)) {
     let datepicker = document.getElementById("replyManagerDatePicker");

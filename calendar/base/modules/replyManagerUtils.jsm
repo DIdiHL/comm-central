@@ -15,6 +15,7 @@ Cu.import("resource:///modules/gloda/public.js");
 Cu.import("resource://calendar/modules/replyManagerCalendar.jsm");
 Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/Services.jsm");
+Cu.import("resource:///modules/gloda/index_msg.js");
 
 var replyManagerUtils = {
   /** Get the list of email addresses who have not replied to the message
@@ -86,10 +87,6 @@ var replyManagerUtils = {
   {
     markHdrExpectReply(aMsgHdr, true, aDateStr);
     
-    /* This is a workaround to get the above change reflected in the Gloda representation.*/
-    aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
-    aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
-    
     if (gPrefBranch.getBoolPref("calendar.replymanager.create_calendar_event_enabled"))
       replyManagerUtils.addHdrToCalendar(aMsgHdr);
   },
@@ -100,11 +97,7 @@ var replyManagerUtils = {
   resetExpectReplyForHdr: function replyManagerUtils_resetExpectReplyForHdr(aMsgHdr) 
   {
     markHdrExpectReply(aMsgHdr, false);
-    
-    /* This is a workaround to get the above change reflected in the Gloda representation.*/
-    aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
-    aMsgHdr.markFlagged(!aMsgHdr.isFlagged);
-    
+
     /* We should attempt to remove the event regardless of the preference because an event might be created
      * before the preference was set to false. */
     replyManagerUtils.removeHdrFromCalendar(aMsgHdr);
@@ -231,6 +224,9 @@ function markHdrExpectReply(aMsgHdr, bExpectReply, aDate) {
   aMsgHdr.setStringProperty("ExpectReply", bExpectReply);
   if (bExpectReply)
     aMsgHdr.setStringProperty("ExpectReplyDate", aDate);
+  
+  //We need to re-index this message to reflect the change to the Gloda attribute
+  GlodaMsgIndexer._reindexChangedMessages([aMsgHdr], true);
 }
 
 function getNotRepliedRecipients(recipientsList, didReply) {

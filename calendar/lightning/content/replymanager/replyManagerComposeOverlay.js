@@ -10,6 +10,19 @@ function onLoad() {
   if (enabled) {
     replymanagerhbox.collapsed = false;
     gMsgCompose.addMsgSendListener(replyManagerSendListener);//add reply manager send listener
+    /* The background color of the minimonth-header element is not applied. Removing the class
+     * of the minimonth header and then reset it to the original value can get the color back.*/
+    //First get the minimonth element and its header
+    let datepicker = document.getElementById("reminder-date");
+    let nodeList = document.getAnonymousNodes(datepicker);
+    for (let i = 0; i < 3; ++i) {
+      //we need to do this three times to reach the minimonth box
+      nodeList = nodeList[0].childNodes;
+    }
+    let mmheader = document.getAnonymousElementByAttribute(nodeList[0], "anonid", "minimonth-header");
+    //Then set the class
+    mmheader.setAttribute("class", null);
+    mmheader.setAttribute("class", "minimonth-month-box");   
   } else {
     replymanagerhbox.collapsed = true;
   }

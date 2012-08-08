@@ -226,7 +226,11 @@ function markHdrExpectReply(aMsgHdr, bExpectReply, aDate) {
     aMsgHdr.setStringProperty("ExpectReplyDate", aDate);
   
   //We need to re-index this message to reflect the change to the Gloda attribute
-  GlodaMsgIndexer._reindexChangedMessages([aMsgHdr], true);
+  let folder = aMsgHdr.folder;
+  let atomService = Cc["@mozilla.org/atom-service;1"].
+                        getService(Ci.nsIAtomService);
+  let keywordAtom = atomService.getAtom("Keywords");
+  folder.NotifyPropertyFlagChanged(aMsgHdr, keywordAtom, null, null);
 }
 
 function getNotRepliedRecipients(recipientsList, didReply) {

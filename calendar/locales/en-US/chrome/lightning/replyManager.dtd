@@ -3,8 +3,6 @@
      You can obtain one at http://mozilla.org/MPL/2.0/.-->
 
 <!-- replyManagerMailWindowOverlay -->
-<!ENTITY createCalendarEventMenuitem.label "Create Calendar Event"><!-- TODO remove -->
-<!ENTITY setBoilerplateMenuitem.label "Set Reminder Boilerplate"><!-- TODO remove -->
 <!ENTITY replyManagerComposeReminderItem.label "Compose Reminder">
 <!ENTITY replyManagerMailContextMenu.label "Reply Manager">
 <!ENTITY replyManagerExpectReplyCheckbox.label "Expect Reply">
@@ -16,7 +14,7 @@
 <!ENTITY allRepliedShowRepliesButton.label "Show replies">
 <!ENTITY allRepliedLabel.value "This message has been replied to.">
 <!ENTITY notAllRepliedLabel.value "Expecting replies by">
-<!ENTITY pastDeadlineLabel.value "The deadline for replies has past.">
+<!ENTITY pastDeadlineLabel.value "The deadline for replies has passed.">
 <!ENTITY notAllRepliedShowRepliesLabel.value "responded,">
 <!ENTITY notAllRepliedShowNotRepliedLabel.value "are expected to reply.">
 <!ENTITY pastDeadlineShowNotRepliedLabel.value "did not reply in time.">

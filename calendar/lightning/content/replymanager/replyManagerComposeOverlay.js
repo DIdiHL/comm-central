@@ -91,6 +91,10 @@ replyManagerComposeStateListener.prototype = {
 function toggleOtherReplyManagerElements()
 {
   let toggle = document.getElementById("other-elements-toggle");
+  if (toggle.checked)
+    toggle.setAttribute("class", "expectReplyChecked");
+  else
+    toggle.setAttribute("class", "expectReplyUnchecked");
   let datePicker = document.getElementById("reminder-date");
   datePicker.disabled = !toggle.checked;
 }

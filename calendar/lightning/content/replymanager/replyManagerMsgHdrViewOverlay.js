@@ -96,6 +96,13 @@ function isPastDeadline(aDateStr) {
   return deadline < today;
 }
 
+function onMinimonthChange(aDate) {
+  let dateStr = aDate.toISOString().substr(0, 10);
+  let msgHdr = gFolderDisplay.selectedMessage;
+  replyManagerUtils.updateExpectReplyForHdr(msgHdr, dateStr);
+  replyManagerHdrViewWidget.hdrViewDeployItems();
+}
+
 var replyManagerHdrViewWidget = {
   replyManagerStrings: null,
   
@@ -155,7 +162,6 @@ var replyManagerHdrViewWidget = {
     this.replyManagerMsgHdrViewBox = document.getElementById("replyManagerMsgHdrViewBox");
     //allRepliedBox
     this.allRepliedBox = document.getElementById("allRepliedBox");
-    this.allRepliedBox.updatingHdrView = false;
   
     //notAllRepliedBox
     this.notAllRepliedBox = document.getElementById("notAllRepliedBox");
@@ -178,16 +184,6 @@ var replyManagerHdrViewWidget = {
     window.addEventListener("unload", function() {
       this.replyManagerMsgHdrViewPrefObserver.onUnload();
     });
-    
-    let onMinimonthPanelHiding = function() {
-      let msgHdr = gFolderDisplay.selectedMessage;
-      let aDate = document.getElementById("replyManagerMinimonth").value;
-      let dateStr = aDate.toISOString().substr(0, 10);
-      replyManagerUtils.updateExpectReplyForHdr(msgHdr, dateStr);
-      replyManagerHdrViewWidget.hdrViewDeployItems();
-    }
-    document.getElementById("replyManagerMinimonthPanel").addEventListener("popuphiding",
-        onMinimonthPanelHiding);
   },
   
   /* A preference observer that hides/shows the ReplyManager items in the otherActionsPopup*/

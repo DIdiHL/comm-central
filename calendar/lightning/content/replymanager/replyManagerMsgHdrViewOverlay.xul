@@ -22,62 +22,76 @@
 </commandset>
 
 <vbox id="otherActionsBox">
-  <!-- Only one of the following vboxes will be visible, which is determined by the hdrViewDeployItems function -->
-  <vbox id="allRepliedBox" position="2" class="replyManagerVBox">
-    <hbox class="replyManagerHBox">
-      <image id="allRepliedIcon" class="replyManagerHdrViewIcon allReplied"/>
-      <label id="allRepliedLabel" value="&allRepliedLabel.value;" role="textbox"
-             aria-readonly="true"/>
-      <button id="allRepliedShowRepliesButton" label="&allRepliedShowRepliesButton.label;"
-              command="cmd_replyManagerShowConversation"
-              tooltiptext="&showRepliesButton.tooltip;"
-              class="msgHeaderView-button replyManagerHdrViewButton"/>
-    </hbox>
-  </vbox>
+  <hbox id="replyManagerMsgHdrViewBox" position="2">
+    <vbox>
+      <!-- Only one of the following vboxes will be visible, which is determined by the hdrViewDeployItems function -->
+      <vbox id="allRepliedBox" class="replyManagerVBox">
+        <hbox class="replyManagerHBox">
+          <image id="allRepliedIcon" class="replyManagerHdrViewIcon allReplied"/>
+          <label id="allRepliedLabel" value="&allRepliedLabel.value;" role="textbox"
+                 aria-readonly="true"/>
+          <button id="allRepliedShowRepliesButton" label="&allRepliedShowRepliesButton.label;"
+                  command="cmd_replyManagerShowConversation"
+                  tooltiptext="&showRepliesButton.tooltip;"
+                  class="msgHeaderView-button replyManagerHdrViewButton"/>
+        </hbox>
+      </vbox>
   
-  <!-- There are two situations: past deadline or not -->
-  <vbox id="notAllRepliedBox" position="3" class="replyManagerVBox">
-    <hbox class="replyManagerHBox">
-      <!-- The image is set in the hdrViewDeployItems method -->
-      <image id="notAllRepliedIcon"/>
+      <!-- There are two situations: past deadline or not -->
+      <vbox id="notAllRepliedBox" class="replyManagerVBox">
+        <hbox class="replyManagerHBox">
+          <!-- The image is set in the hdrViewDeployItems method -->
+          <image id="notAllRepliedIcon"/>
 
-      <!-- This label is shown if still within deadline -->
-      <label id="notAllRepliedLabel" value="&notAllRepliedLabel.value;" role="textbox"
-             aria-readonly="true"/>
+          <!-- This label is shown if still within deadline -->
+          <label id="notAllRepliedLabel" value="&notAllRepliedLabel.value;" role="textbox"
+                 aria-readonly="true"/>
 
-      <label id="ExpectReplyDateLabel" flex="1" role="textbox"
-	       aria-readonly="true"/>
+          <label id="ExpectReplyDateLabel" flex="1" role="textbox"
+	           aria-readonly="true"/>
        
-      <!-- This label is shown if past deadline -->
-      <label id="pastDeadlineLabel" value="&pastDeadlineLabel.value;" role="textbox"
-             aria-readonly="true"/>
+          <!-- This label is shown if past deadline -->
+          <label id="pastDeadlineLabel" value="&pastDeadlineLabel.value;" role="textbox"
+                 aria-readonly="true"/>
 
-      <button id="notAllRepliedShowRepliesButton" command="cmd_replyManagerShowConversation"
-              tooltiptext="&showRepliesButton.tooltip;"
-              class="msgHeaderView-button replyManagerHdrViewButton"/>
-      <label id="notAllRepliedShowRepliesLabel" value="&notAllRepliedShowRepliesLabel.value;"
-             role="textbox" aria-readonly="true"/>
-    </hbox>
+          <button id="notAllRepliedShowRepliesButton" command="cmd_replyManagerShowConversation"
+                  tooltiptext="&showRepliesButton.tooltip;"
+                  class="msgHeaderView-button replyManagerHdrViewButton"/>
+          <label id="notAllRepliedShowRepliesLabel" value="&notAllRepliedShowRepliesLabel.value;"
+                 role="textbox" aria-readonly="true"/>
+        </hbox>
 
-    <hbox class="replyManagerHBox">
-      <button id="showNotRepliedButton" command="cmd_replyManagerShowNotReplied"
-              tooltiptext="&showNotRepliedButton.tooltip;"
-              class="msgHeaderView-button replyManagerHdrViewButton"/>
+        <hbox class="replyManagerHBox">
+          <button id="showNotRepliedButton" command="cmd_replyManagerShowNotReplied"
+                  tooltiptext="&showNotRepliedButton.tooltip;"
+                  class="msgHeaderView-button replyManagerHdrViewButton"/>
 
-      <!-- This label is shown if still within deadline -->
-      <label id="notAllRepliedShowNotRepliedLabel" value="&notAllRepliedShowNotRepliedLabel.value;"
-             role="textbox" aria-readonly="true"/>
+          <!-- This label is shown if still within deadline -->
+          <label id="notAllRepliedShowNotRepliedLabel" value="&notAllRepliedShowNotRepliedLabel.value;"
+                 role="textbox" aria-readonly="true"/>
 
-      <!-- This label is shown if past deadline -->
-      <label id="pastDeadlineShowNotRepliedLabel" value="&pastDeadlineShowNotRepliedLabel.value;"
-             role="textbox" aria-readonly="true"/>
+          <!-- This label is shown if past deadline -->
+          <label id="pastDeadlineShowNotRepliedLabel" value="&pastDeadlineShowNotRepliedLabel.value;"
+                 role="textbox" aria-readonly="true"/>
 
-      <button id="notAllRepliedRemindThemButton" label="&remindThemButton.label;"
-              command="cmd_hdrViewStartComposeReminder"
-              tooltiptext="&sendReminderButton.tooltip;"
-              class="msgHeaderView-button replyManagerHdrViewButton"/>
-    </hbox>
-  </vbox>
+          <button id="notAllRepliedRemindThemButton" label="&remindThemButton.label;"
+                  command="cmd_hdrViewStartComposeReminder"
+                  tooltiptext="&sendReminderButton.tooltip;"
+                  class="msgHeaderView-button replyManagerHdrViewButton"/>
+        </hbox>
+      </vbox>
+    </vbox>
+
+    <!-- A lightning-style datepicker to provide easy-modification of the expect-reply date -->
+    <toolbarbutton id="replyManagerMinimonthDropdown" type="menu" 
+                   tooltiptext="&replyManagerMinimonthDropdown.tooltip;">
+      <panel id="replyManagerMinimonthPanel" position="after_end">
+        <minimonth id="replyManagerMinimonth" 
+                   onchange="onMinimonthChange(this.value);
+                             document.getElementById('replyManagerMinimonthPanel').hidePopup();"/>
+      </panel>
+    </toolbarbutton>
+  </hbox>
 </vbox>
 
 <menupopup id="otherActionsPopup">

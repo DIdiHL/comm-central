@@ -13,7 +13,7 @@ function onLoad()
   replyManagerMenu.hidden =
          !Services.prefs.getBoolPref("calendar.replymanager.enabled");
   //initialize the replyManagerCalendar module
-  replyManagerCalendar.ensureCalendarExists();
+  replyManagerCalendar.initCalendar();
   replyManagerMailListener.init();
   replyManagerMailContextPrefObserver.onLoad();
   replyManagerTabOpener.init();

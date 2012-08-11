@@ -9,6 +9,9 @@ const Cc = Components.classes;
 
 Cu.import("resource://gre/modules/errUtils.js");
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://calendar/modules/calUtils.jsm");
+Cu.import("resource:///modules/gloda/public.js");
+Cu.import("resource:///modules/gloda/index_msg.js");
 
 /**
  * replyManagerCalendar
@@ -19,33 +22,18 @@ var replyManagerCalendar = {
   /* This method is called in replyManagerMailWindowOverlay.js
    * after the window fires the load event. This ensures that 
    * replyManagerCalendar exists. */
-  ensureCalendarExists : function ()
+  initCalendar : function ()
   {
-    let calName = "replyManagerCalendar";
-    this.calendarManager = Cc["@mozilla.org/calendar/manager;1"]
-                            .getService(Components.interfaces.calICalendarManager);
-    Cu.import("resource://calendar/modules/calUtils.jsm");
-    if (this.calendarManager == null) 
-      throw new Error("Error: Lightning not found!");
-    let calendars = this.calendarManager.getCalendars({});
-    let calFound = false;
-    /* Filter the calendars so that it only contains replyManagerCalendar
-     * if it returns an empty array, this calendar has not been created we
-     * need to proceed to creating one.*/
-    calendars = calendars.filter(function(cal) cal.name == calName);
-    if (calendars.length != 0)
-    {
-      calFound = true;
-      this.calendar = calendars[0];
+    let calendarID = Services.prefs.getCharPref("calendar.replymanager.calendarID");
+    /* Get the calendar with the calendarID. If the ID is an empty string,
+     * the calendar does not exists. So create one. */
+    if (calendarID != "") {
+      getCalendarById(calendarID);
+    } else {
+      createNewCalendar();
     }
-    //if not found, i.e. the calendar has not been created, create one.
-    if (!calFound) 
-    {
-      let temp = this.calendarManager.createCalendar("storage", Services.io.newURI("moz-profile-calendar://", null, null));
-      temp.name = calName;
-      this.calendarManager.registerCalendar(temp);
-      this.calendar = temp;
-    }
+    replyManagerCalendarManagerObserver.init();
+    replyManagerCalendarObserver.init();
   },
 
   retrieveItem: function(id,calendar)
@@ -63,6 +51,7 @@ var replyManagerCalendar = {
    */
   addEvent : function(dateStr, id, status)
   {
+    this.calendar.readOnly = false;
     /* First we need to test of an event with the same
      * id exists. If so what we need is modification instead
      * of addition. */
@@ -97,6 +86,7 @@ var replyManagerCalendar = {
    */
   modifyCalendarEvent : function(id, status, dateStr)
   {
+    this.calendar.readOnly = false;
     /* First we need to test if such event exists, if not we need
      * to create a new event. */
     if (!this.retrieveItem(id, this.calendar)) {
@@ -122,6 +112,7 @@ var replyManagerCalendar = {
   removeEvent:function(id)
   {
     try {
+      this.calendar.readOnly = false;
       let tempEvent = this.retrieveItem(id, this.calendar);
       this.calendar.deleteItem(tempEvent,null);
     } catch(e) {
@@ -169,3 +160,112 @@ function generateICalString(aDateStr) {
   iCalString += "END:VCALENDAR\n";
   return iCalString;
 }
+
+/* Get the calendar with the given ID, if such a calendar does not exist,
+ * this method will call createNewCalendar. */
+function getCalendarById(aCalID) {
+  calendarManager = Cc["@mozilla.org/calendar/manager;1"]
+                    .getService(Components.interfaces.calICalendarManager);
+  let calendar = calendarManager.getCalendarById(aCalID);
+  if (calendar != null) {
+    replyManagerCalendar.calendar = calendar;
+  } else {
+    createNewCalendar();
+  }
+}
+
+/* Create a new reply manager calendar and assign the id of the calendar
+ * to the "calendar.replymanager.calendarID" preference. */
+function createNewCalendar() {
+  let calendarManager = Cc["@mozilla.org/calendar/manager;1"]
+                    .getService(Components.interfaces.calICalendarManager);
+  let temp = calendarManager.createCalendar("storage", 
+              Services.io.newURI("moz-profile-calendar://", null, null));
+  temp.name = "ReplyManagerCalendar";
+  calendarManager.registerCalendar(temp);
+  Services.prefs.setCharPref("calendar.replymanager.calendarID", temp.id);
+  replyManagerCalendar.calendar = temp;
+}
+
+
+var replyManagerCalendarManagerObserver = {
+  init: function() {
+    let calendarManager = Cc["@mozilla.org/calendar/manager;1"]
+                    .getService(Components.interfaces.calICalendarManager);
+    calendarManager.addObserver(this);
+  },
+
+  /* We don't want the calendar to be deleted while the application is
+   * running or things will break. So if the user somehow deleted the
+   * ReplyManagerCalendar we need to re-create one. */
+  onCalendarDeleting: function(aCalendar) {
+    if (aCalendar.id == replyManagerCalendar.calendar.id) {
+      /* The calendar being deleted is our reply manager calendar we need
+       * to create a new one */
+      createNewCalendar();
+    }
+  },
+};
+
+var replyManagerCalendarObserver = {
+  init: function() {
+    replyManagerCalendar.calendar.addObserver(this);
+  },
+  
+  /* query the message using Gloda with the message ID provided. */
+  queryMessage: function(aID, aCallback) {
+    /* Let's create a Gloda query and search for this message. */
+    let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
+    query.headerMessageID(aID);
+    let collection = query.getCollection({
+      onItemsAdded: function() {},
+      onItemsRemoved: function() {},
+      onItemsModified: function() {},
+      onQueryCompleted: function(aCollection) {
+        if (aCollection.items.length > 0) {
+          let msgHdr = aCollection.items[0].folderMessage;
+          aCallback(msgHdr);
+        }
+      },
+    });
+  },
+  
+  /* It is most likely that when a user delete a reminder he wants to
+   * unmark the message as expecting replies, so let's observe such
+   * event and do it for the him. */
+  onDeleteItem: function(aDeletedItem) {
+    let calendar = aDeletedItem.calendar;
+    if (calendar == replyManagerCalendar.calendar) {
+      let msgID = aDeletedItem.id;
+      let callback = function(aMsgHdr) {
+        aMsgHdr.setStringProperty("ExpectReply", "false");
+        GlodaMsgIndexer._reindexChangedMessages([aMsgHdr], true);
+      };
+      this.queryMessage(msgID, callback);
+    }
+  },
+  
+  /* The user may change the date of a reminder through the calenar interface,
+   * we need to observe this and change the property on the message header
+   * accordingly */
+  onModifyItem: function(aNewItem, aOldItem) {
+    /* if the calendar is our ReplyManagerCalendar we know this is the case. */
+    let calendar = aOldItem.calendar;
+    if (calendar == replyManagerCalendar.calendar) {
+      /* Generate a YYYY-MM-DD formated date string */
+      let aDateTime = aNewItem.startDate;
+      let year = aDateTime.year;
+      let month = aDateTime.month + 1;
+      let day = aDateTime.day;
+      let strMonth = (month < 10) ? "0" + month : month;
+      let strDay = (day < 10) ? "0" + day : day;
+      let dateStr = "" + year + "-" + strMonth + "-" + strDay;
+      
+      let msgID = aNewItem.id;
+      let callback = function(aMsgHdr) {
+        aMsgHdr.setStringProperty("ExpectReplyDate", dateStr);
+      };
+      this.queryMessage(msgID, callback);
+    }
+  },
+};

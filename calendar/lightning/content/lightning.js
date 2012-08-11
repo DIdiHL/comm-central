@@ -130,3 +130,5 @@ pref("calendar.replymanager.enabled", false);
 pref("calendar.replymanager.create_calendar_event_enabled", false);
   //This is the boilerplateused that will be filled into the content area in the compose window
 pref("calendar.replymanager.boilerplate", "");
+  //This is the id of the calendar hosting email reminders
+pref("calendar.replymanager.calendarID", "");

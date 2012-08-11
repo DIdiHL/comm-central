@@ -31,7 +31,7 @@ function toggleHdrViewExpectReplyCheckbox() {
   if (checkbox.getAttribute("checked") == "true") {
     replyManagerUtils.resetExpectReplyForHdr(msgHdr);
     replyManagerHdrViewWidget.hdrViewDeployItems();
-  } else if (checkbox.getAttribute("checked") == "false") {
+  } else {
     let params = {
       inMsgHdr: msgHdr,
       outDate: null
@@ -111,6 +111,10 @@ var replyManagerHdrViewWidget = {
   
   sendReminderItem: null,
   
+  replyManagerHdrViewSep: null,
+  
+  replyManagerMsgHdrViewBox: null,
+  
   //allRepliedBox
   allRepliedBox: null,
   
@@ -145,7 +149,10 @@ var replyManagerHdrViewWidget = {
     this.modifyCommand = document.getElementById("cmd_hdrViewModifyExpectReply");
     
     this.sendReminderItem = document.getElementById("hdrViewSendReminderItem");
-
+    
+    this.replyManagerHdrViewSep = document.getElementById("replyManagerHdrViewSep");
+    
+    this.replyManagerMsgHdrViewBox = document.getElementById("replyManagerMsgHdrViewBox");
     //allRepliedBox
     this.allRepliedBox = document.getElementById("allRepliedBox");
     this.allRepliedBox.updatingHdrView = false;
@@ -167,41 +174,98 @@ var replyManagerHdrViewWidget = {
     this.notAllRepliedShowNotRepliedLabel = document.getElementById("notAllRepliedShowNotRepliedLabel"); 
     this.pastDeadlineShowNotRepliedLabel = document.getElementById("pastDeadlineShowNotRepliedLabel");
     
-    let onOtherActionsPopupShowing = function() {
+    this.replyManagerMsgHdrViewPrefObserver.onLoad();
+    window.addEventListener("unload", function() {
+      this.replyManagerMsgHdrViewPrefObserver.onUnload();
+    });
+    
+    let onMinimonthPanelHiding = function() {
+      let msgHdr = gFolderDisplay.selectedMessage;
+      let aDate = document.getElementById("replyManagerMinimonth").value;
+      let dateStr = aDate.toISOString().substr(0, 10);
+      replyManagerUtils.updateExpectReplyForHdr(msgHdr, dateStr);
+      replyManagerHdrViewWidget.hdrViewDeployItems();
+    }
+    document.getElementById("replyManagerMinimonthPanel").addEventListener("popuphiding",
+        onMinimonthPanelHiding);
+  },
+  
+  /* A preference observer that hides/shows the ReplyManager items in the otherActionsPopup*/
+  replyManagerMsgHdrViewPrefObserver: {
+    prefs: null,
+
+    enableItems: function() {
       let enabled = Services.prefs.getBoolPref("calendar.replymanager.enabled");
-      this.expectReplyCheckbox.collapsed = !enabled;
-      this.modifyItem.collapsed = !enabled;
-      this.sendReminderItem.collapsed = !enabled;
-      document.getElementById("replyManagerHdrViewSep").collapsed = !enabled;
-    };
-    document.getElementById("otherActionsPopup")
-            .addEventListener("popupshowing", onOtherActionsPopupShowing.bind(this));
+      replyManagerHdrViewWidget.expectReplyCheckbox.collapsed = !enabled;
+      replyManagerHdrViewWidget.modifyItem.collapsed = !enabled;
+      replyManagerHdrViewWidget.sendReminderItem.collapsed = !enabled;
+      replyManagerHdrViewWidget.replyManagerHdrViewSep.collapsed = !enabled;
+    },
+
+    onLoad: function()
+    {
+      this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                             .getService(Components.interfaces.nsIPrefService)
+                             .getBranch("calendar.replymanager.");
+      this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+      this.prefs.addObserver("", this, false);
+      //Enable/disable items on startup
+      this.enableItems();
+    },
+
+    onUnload: function()
+    {
+      this.prefs.removeObserver("", this);
+    },
+
+    observe: function(subject, topic, data)
+    {
+      if (topic != "nsPref:changed")
+      {
+        return;
+      }
+
+      switch(data)
+      {
+        /*If the value of this pref is changed in other mail window,
+          we need to change the state of the menuitem in this window accordingly.*/
+        case "enabled":
+          this.enableItems();
+          replyManagerHdrViewWidget.hdrViewDeployItems();        
+          break;
+      }
+    }
   },
   
   /**
    * This method controls the display of various elements in the header view
    * and the state of some menuitems in the otherActionsPopup */
   hdrViewDeployItems: function() {
+    let msgHdr = replyManagerHdrViewListener.displayedMessage;
     /* If ReplyManager is disabled we should not show either of the boxes. */
-    if(!Services.prefs.getBoolPref("calendar.replymanager.enabled")) {
-      this.allRepliedBox.collapsed = true;
-      this.notAllRepliedBox.collapsed = true;
+    if(!Services.prefs.getBoolPref("calendar.replymanager.enabled") ||
+       !Services.prefs.getBoolPref("mailnews.database.global.indexer.enabled") ||
+       !Gloda.isMessageIndexed(msgHdr)) {
+      this.replyManagerMsgHdrViewBox.collapsed = true;
       return;
     }
     
-    let msgHdr = replyManagerHdrViewListener.displayedMessage;
     this.expectReplyDateLabel.textContent = "";
 
     if (replyManagerUtils.isHdrExpectReply(msgHdr)) {
       this.expectReplyCheckbox.setAttribute("checked", "true");
       this.modifyCommand.setAttribute("disabled", "false");
       this.expectReplyDateLabel.textContent += msgHdr.getStringProperty("ExpectReplyDate") + ".";
+      this.replyManagerMsgHdrViewBox.collapsed = false;
+      let date = new Date(msgHdr.getStringProperty("ExpectReplyDate"));
+      document.getElementById("replyManagerMinimonth").mValue = date;
+      document.getElementById("replyManagerMinimonth").showMonth(date);
+      
       replyManagerUtils.getNotRepliedForHdr(msgHdr, this.chooseIcon.bind(this));
     } else {
       this.expectReplyCheckbox.setAttribute("checked", "false");
       this.modifyCommand.setAttribute("disabled", "true");
-      this.allRepliedBox.collapsed = true;
-      this.notAllRepliedBox.collapsed = true;
+      this.replyManagerMsgHdrViewBox.collapsed = true;
       Services.obs.notifyObservers(null, "ReplyManager", "Updated");
     }
   },

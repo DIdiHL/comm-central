@@ -5,7 +5,9 @@ Components.utils.import("resource://calendar/modules/replyManagerUtils.jsm");
 Components.utils.import("resource:///modules/Services.jsm");
 
 function onLoad() {
-  let enabled = Services.prefs.getBoolPref("calendar.replymanager.enabled");
+  /* We need both ReplyManager and Gloda indexer enabled to make this feature work. */
+  let enabled = Services.prefs.getBoolPref("calendar.replymanager.enabled") &
+                Services.prefs.getBoolPref("mailnews.database.global.indexer.enabled");
   let replymanagerhbox = document.getElementById("replymanager-hbox");
   if (enabled) {
     replymanagerhbox.collapsed = false;

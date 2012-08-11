@@ -196,7 +196,8 @@ var replyManagerMailListener = {
   msgsDeleted: function(aItems) {
     let mailEnumerator = aItems.enumerate();
     while (mailEnumerator.hasMoreElements()) {
-      let msg = mailEnumerator.getNext();
+      let msg = mailEnumerator.getNext()
+                              .QueryInterface(Components.interfaces.nsIMsgDBHdr);
       if (replyManagerUtils.isHdrExpectReply(msg)) {
         replyManagerUtils.resetExpectReplyForHdr(msg);
       }

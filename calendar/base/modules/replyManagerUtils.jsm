@@ -100,7 +100,11 @@ var replyManagerUtils = {
 
     /* We should attempt to remove the event regardless of the preference because an event might be created
      * before the preference was set to false. */
-    replyManagerUtils.removeHdrFromCalendar(aMsgHdr);
+    try {
+      replyManagerUtils.removeHdrFromCalendar(aMsgHdr);
+    } catch(e) {
+      /* There may be no such event so we need this try block. */
+    }
   },
   
   /**
@@ -226,12 +230,17 @@ function markHdrExpectReply(aMsgHdr, bExpectReply, aDate) {
     aMsgHdr.setStringProperty("ExpectReplyDate", aDate);
   
   //We need to re-index this message to reflect the change to the Gloda attribute
-  reindexMessage(aMsgHdr);
+  indexMessage(aMsgHdr);
 }
 
 /* Tell Gloda to reindex the message */
-function reindexMessage(aMsgHdr) {
-  GlodaMsgIndexer._reindexChangedMessages([aMsgHdr], true);
+function indexMessage(aMsgHdr) {
+  if (Gloda.isMessageIndexed(aMsgHdr)) {
+    //the message is already indexed we just need to reindex it
+    GlodaMsgIndexer._reindexChangedMessages([aMsgHdr], true);
+  } else {
+    GlodaMsgIndexer.indexMessages([[aMsgHdr.folder, aMsgHdr.messageKey]]);
+  }
 }
 
 function getNotRepliedRecipients(recipientsList, didReply) {

@@ -249,13 +249,18 @@ var replyManagerHdrViewWidget = {
     this.expectReplyDateLabel.textContent = "";
 
     if (replyManagerUtils.isHdrExpectReply(msgHdr)) {
+      //Make otherActionsPopup menuitems show correct information
       this.expectReplyCheckbox.setAttribute("checked", "true");
       this.modifyCommand.setAttribute("disabled", "false");
-      this.expectReplyDateLabel.textContent += msgHdr.getStringProperty("ExpectReplyDate") + ".";
+      
+      //Get the reply deadline and display it in locale format
+      let dateStr = msgHdr.getStringProperty("ExpectReplyDate");
+      let jsDate = new Date(dateStr);
+      this.expectReplyDateLabel.textContent += jsDate.toLocaleDateString() + ".";
+      
       this.replyManagerMsgHdrViewBox.collapsed = false;
-      let date = new Date(msgHdr.getStringProperty("ExpectReplyDate"));
-      document.getElementById("replyManagerMinimonth").mValue = date;
-      document.getElementById("replyManagerMinimonth").showMonth(date);
+      document.getElementById("replyManagerMinimonth").mValue = jsDate;
+      document.getElementById("replyManagerMinimonth").showMonth(jsDate);
       
       replyManagerUtils.getNotRepliedForHdr(msgHdr, this.chooseIcon.bind(this));
     } else {

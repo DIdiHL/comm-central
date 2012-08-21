@@ -11,38 +11,39 @@
 <overlay id="ReplyManagerPaneOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<vbox id="calPreferencesBoxReplyManager">
-  <script type="application/javascript" src="chrome://lightning/content/replyManagerPreferences.js"/>
-  <preferences>
-    <preference id="calendar.replymanager.enabled"
-                name="calendar.replymanager.enabled"
-                type="bool"
-                onchange="gReplyManagerPane.toggleReplyManagerEnabled();"/>
-    <preference id="calendar.replymanager.create_calendar_event_enabled"
-                name="calendar.replymanager.create_calendar_event_enabled"
-                type="bool"/>
-    <preference id="calendar.replymanager.boilerplate"
-                name="calendar.replymanager.boilerplate"
-                type="string"/>
-  </preferences>
-  
-  <groupbox flex="1" class="replyManagerPrefpaneBox">
-    <caption>
-      <checkbox id="enableReplyManagerCheckbox"
-                label="&enableReplyManagerGroupbox.label;"
-                preference="calendar.replymanager.enabled"/>
-    </caption>
-    <checkbox id="toggleReplyManagerCreateEvent"
-              label="&toggleReplyManagerCreateEvent.label;"
-              preference="calendar.replymanager.create_calendar_event_enabled"/>
-    <groupbox id="boilerplateTextGroupbox"
-              flex="1">
-      <caption label="&prefReplyManagerBoilerplate.label;"/>
-      <textbox id="reminderBoilerplateTextbox" multiline="true"
-               newlines="pasteintact" flex="1"
-               preference="calendar.replymanager.boilerplate"/>
+  <vbox id="calPreferencesBoxReplyManager">
+    <script type="application/javascript"
+            src="chrome://lightning/content/replyManagerPreferences.js"/>
+    <preferences>
+      <preference id="calendar.replymanager.enabled"
+                  name="calendar.replymanager.enabled"
+                  type="bool"
+                  onchange="gReplyManagerPane.toggleReplyManagerEnabled();"/>
+      <preference id="calendar.replymanager.create_calendar_event_enabled"
+                  name="calendar.replymanager.create_calendar_event_enabled"
+                  type="bool"/>
+      <preference id="calendar.replymanager.boilerplate"
+                  name="calendar.replymanager.boilerplate"
+                  type="string"/>
+    </preferences>
+
+    <groupbox flex="1" class="replyManagerPrefpaneBox">
+      <caption>
+        <checkbox id="enableReplyManagerCheckbox"
+                  label="&enableReplyManagerGroupbox.label;"
+                  preference="calendar.replymanager.enabled"/>
+      </caption>
+      <checkbox id="toggleReplyManagerCreateEvent"
+                label="&toggleReplyManagerCreateEvent.label;"
+                preference="calendar.replymanager.create_calendar_event_enabled"/>
+      <groupbox id="boilerplateTextGroupbox"
+                flex="1">
+        <caption label="&prefReplyManagerBoilerplate.label;"/>
+        <textbox id="reminderBoilerplateTextbox" multiline="true"
+                 newlines="pasteintact" flex="1"
+                 preference="calendar.replymanager.boilerplate"/>
+      </groupbox>
     </groupbox>
-  </groupbox>
-</vbox>
+  </vbox>
 
 </overlay>

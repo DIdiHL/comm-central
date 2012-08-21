@@ -7,7 +7,8 @@
 <?xml-stylesheet href="chrome://calendar/skin/widgets/minimonth.css" type="text/css"?>
 <!DOCTYPE dialog  SYSTEM "chrome://lightning/locale/replyManager.dtd">
 
-<dialog id="replyManagerDateDialog" title="&replyManagerDateDialog.title;" 
+<dialog id="replyManagerDateDialog"
+        title="&replyManagerDateDialog.title;"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onload="onLoad();"
         buttons="accept,cancel"
@@ -17,45 +18,9 @@
         ondialogcancel="return doCancel();"
         flex="1">
 
-<script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
-<script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
-<script type="text/javascript">
-<![CDATA[
-Components.utils.import("resource://calendar/modules/replyManagerUtils.jsm");
-/* If the message is expecting replies we need to set the datepicker
- * the value of the expect reply date for convenience.
- */
-function onLoad() {
-  /* The background color of the minimonth-header element is not applied. Removing the class
-   * of the minimonth header and then reset it to the original value can get the color back.*/
-  let minimonth = document.getElementById("replyManagerDatePicker");
-  let mmheader = document.getAnonymousElementByAttribute(minimonth, "anonid", "minimonth-header");
-  mmheader.setAttribute("class", null);
-  mmheader.setAttribute("class", "minimonth-month-box");
-  
-  let header = window.arguments[0].inMsgHdr;
-  if (replyManagerUtils.isHdrExpectReply(header)) {
-    let datepicker = document.getElementById("replyManagerDatePicker");
-    let aDate = new Date(header.getStringProperty("ExpectReplyDate"));
-    datepicker.mValue = aDate;
-    datepicker.showMonth(aDate);
-  }
-}
-  
-function doOK() {
-  let params = window.arguments[0];
-  let aDate = document.getElementById("replyManagerDatePicker").value;
-  /* This substring has the format YYYY-MM-DD */
-  params.outDate = aDate.toISOString().substr(0, 10);
-  return true;
-}
-
-function doCancel() {
-  return true;
-}
-]]>
-</script>
-
-<dialogheader title="&replyManagerDateDialogHeader.title;"/>
-<minimonth id="replyManagerDatePicker"/>
+  <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
+  <script type="application/javascript" src="chrome://lightning/content/replyManagerDateDialog.js"/>
+  <dialogheader title="&replyManagerDateDialogHeader.title;"/>
+  <minimonth id="replyManagerDatePicker"/>
 </dialog>

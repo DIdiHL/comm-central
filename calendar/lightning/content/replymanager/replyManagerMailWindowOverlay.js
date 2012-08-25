@@ -12,12 +12,16 @@ Components.utils.import("resource:///modules/Services.jsm");
 function onLoad()
 {
   let replyManagerMenu = document.getElementById("replyManagerMailContextMenu");
-  replyManagerMenu.hidden =
-    !cal.getPrefSafe("calendar.replymanager.enabled", false);
+  let replyManagerMessageMenu = document.getElementById("replyManagerMessageMenu");
+  let enabled = cal.getPrefSafe("calendar.replymanager.enabled", false);
+  replyManagerMenu.hidden = !enabled;
+  replyManagerMessageMenu.hidden = !enabled;
+
   //initialize the ReplyManagerCalendar module
   ReplyManagerCalendar.initCalendar();
   replyManagerMailListener.init();
   replyManagerTabOpener.init();
+
   //If no email is selected the ReplyManager menu should be hidden
   document.getElementById("mailContext")
           .addEventListener("popupshowing", function() {
@@ -25,7 +29,29 @@ function onLoad()
      !cal.getPrefSafe("calendar.replymanager.enabled", false) |
      !GlodaIndexer.enabled);
   });
+
+  //Add a similar event listener to the Message menu
+  document.getElementById("messageMenuPopup")
+          .addEventListener("popupshowing", function() {
+    replyManagerMessageMenu.hidden = (!cal.getPrefSafe("calendar.replymanager.enabled", false) |
+      !GlodaIndexer.enabled);
+    // The ReplyManager menu in the message menu is not hidden when no message
+    // is selected but disabled instead
+    replyManagerMessageMenu.setAttribute("disabled", gFolderDisplay.selectedMessage == null);
+  });
+
+  updateToolbarButtons(gFolderDisplay.selectedMessage);
 }
+
+var replyManagerMailWindowListener = {
+  onStartHeaders: function() {
+    updateToolbarButtons(gFolderDisplay.selectedMessage);
+  },
+  onEndHeaders: function() {},
+  onEndAttachments: function() {},
+  onBeforeShowHeaderPane: function() {},
+};
+gMessageListeners.push(replyManagerMailWindowListener);
 
 //--------------------mailContext menu section----------------------------
 /**
@@ -41,9 +67,12 @@ function startComposeReminder() {
  * deployMenuitems sets the state of some menuitems in the reply manager popup
  * before the popup shows.
  */
-function onReplyManagerPopupShown() {
+function onReplyManagerPopupShowing(elementId) {
   let msgHdr = gFolderDisplay.selectedMessage;
-  let expectReplyCheckbox = document.getElementById("expectReplyCheckbox");
+  let checkboxId = (elementId == "replyManagerMessageMenupopup") ?
+                   "messageExpectReplyCheckbox"
+                 : "expectReplyCheckbox";
+  let expectReplyCheckbox = document.getElementById(checkboxId);
   // Somehow disabling the menuitem directly doesn't work so I disable the
   // associated command instead.
   let modifyCommand = document.getElementById("cmd_modifyExpectReply");
@@ -62,18 +91,16 @@ function onReplyManagerPopupShown() {
  * "Expect Reply" checkbox in the menupopup. It will toggle the
  * ExpectReply state of the selected message.
  */
-function toggleExpectReplyCheckbox() {
-  let checkbox = document.getElementById("expectReplyCheckbox");
-  let menuitem = document.getElementById("modifyExpectReplyItem");
+function toggleExpectReplyCheckbox(elementId) {
+  let checkbox = document.getElementById(elementId);
   let msgHdr = gFolderDisplay.selectedMessage;
   // Since we are going to change the property of the email, we
   // need to reflect this change to the header view pane. Thus
   // hdrViewDeployItems is called in order to make this change.
   if (checkbox.getAttribute("checked") == "true") {
     ReplyManagerUtils.resetExpectReplyForHdr(msgHdr);
-    checkbox.setAttribute("checked", "false");
-    menuitem.setAttribute("disabled", "true");
     replyManagerHdrViewWidget.hdrViewDeployItems();
+    updateToolbarButtons(msgHdr);
   } else if (checkbox.getAttribute("checked") == "false") {
     let params = {
       inMsgHdr: msgHdr,
@@ -84,10 +111,9 @@ function toggleExpectReplyCheckbox() {
                       "chrome, dialog, modal", params);
     if (params.outDate) {
       ReplyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
-      checkbox.setAttribute("checked", "true");
-      menuitem.setAttribute("disabled", "false");
       // update the hdr view pane
       replyManagerHdrViewWidget.hdrViewDeployItems();
+      updateToolbarButtons(msgHdr);
     }
   }
 }
@@ -173,6 +199,72 @@ var replyManagerMailListener = {
     }
   }
 };
+
+//----------------------------ToolbarButton Section---------------------
+function updateToolbarButtons(aMsgHdr) {
+  let strings = new StringBundle("chrome://lightning/locale/replyManager.properties");
+  let markButton = document.getElementById("markExpectReplyButton");
+  let modifyButton = document.getElementById("modifyDeadlineButton");
+  if (aMsgHdr &&
+      cal.getPrefSafe("calendar.replymanager.enabled", false) &&
+      GlodaIndexer.enabled) {
+    if (ReplyManagerUtils.isHdrExpectReply(aMsgHdr)) {
+      // This message is marked, we need to set the icon and label of the
+      // "markExpectReplyButton" to the "Unmark" theme. and disable deadline
+      // modification
+      if (markButton) {
+        markButton.setAttribute("label", strings.getString("unmarkExpectReplyLabel"));
+        markButton.setAttribute("class", "unmarkExpectReplyButton");
+        markButton.setAttribute("disabled", "false");
+      }
+      if (modifyButton)
+        modifyButton.setAttribute("disabled", "false");
+    } else {
+      if (markButton) {
+        markButton.setAttribute("label", strings.getString("markExpectReplyLabel"));
+        markButton.setAttribute("class", "markExpectReplyButton");
+        markButton.setAttribute("disabled", "false");
+      }
+      if (modifyButton)
+        modifyButton.setAttribute("disabled", "true");
+    }
+  } else {
+    // No message is selected, for simplicity we set the "markExpectReplyButton" to
+    // the "Mark" theme and then disable it.
+    if (markButton) {
+      markButton.setAttribute("label", strings.getString("markExpectReplyLabel"));
+      markButton.setAttribute("class", "markExpectReplyButton");
+      markButton.setAttribute("disabled", "true");
+    }
+    if (modifyButton)
+      modifyButton.setAttribute("disabled", "true");
+  }
+}
+
+function toolbarMarkExpectReply() {
+  let msgHdr = gFolderDisplay.selectedMessage;
+  if (msgHdr != null && ReplyManagerUtils.isHdrExpectReply(msgHdr)) {
+    ReplyManagerUtils.resetExpectReplyForHdr(msgHdr);
+    replyManagerHdrViewWidget.hdrViewDeployItems();
+    updateToolbarButtons(msgHdr);
+  } else {
+    let params = {
+      inMsgHdr: msgHdr,
+      outDate: null
+    };
+    window.openDialog("chrome://lightning/content/replyManagerDateDialog.xul",
+                      "replyManagerDateDialog",
+                      "chrome, dialog, modal", params);
+    if (params.outDate) {
+      ReplyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
+      // update the hdr view pane
+      replyManagerHdrViewWidget.hdrViewDeployItems();
+      updateToolbarButtons(msgHdr);
+    }
+  }
+}
+
+//---------------------Misc Section-----------------------------------
 
 var replyManagerTabOpener = {
   strings: null,

@@ -9,6 +9,11 @@
 <!ENTITY replyManagerModifyExpectReplyItem.label "Change Deadline">
 <!ENTITY replyManagerSendReminderItem.label "Send Reminder">
 <!ENTITY viewAllMarkedMessages.label "View all marked messages">
+<!ENTITY viewAllMarkedMessagesButton.label "View Expect-Reply Messages">
+<!ENTITY viewAllMarkedMessagesButton.tooltip "Click to view all messages marked expecting replies">
+<!ENTITY markExpectReplyButton.label "Mark Expect-Reply">
+<!ENTITY modifyDeadlineButton.label "Change Deadline">
+<!ENTITY modifyDeadlineButton.tooltip "Click to change the deadline for replies">
 
 <!-- replyManagerMsgHdrViewOverlay -->
 <!ENTITY allRepliedShowRepliesButton.label "Show replies">

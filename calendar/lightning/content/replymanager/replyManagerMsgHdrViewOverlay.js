@@ -35,6 +35,8 @@ function toggleHdrViewExpectReplyCheckbox() {
   if (checkbox.getAttribute("checked") == "true") {
     ReplyManagerUtils.resetExpectReplyForHdr(msgHdr);
     replyManagerHdrViewWidget.hdrViewDeployItems();
+    // This function is in replyManagerMailWindowOverlay.js
+    updateToolbarButtons(msgHdr);
   } else {
     let params = {
       inMsgHdr: msgHdr,
@@ -46,6 +48,7 @@ function toggleHdrViewExpectReplyCheckbox() {
     if (params.outDate) {
       ReplyManagerUtils.setExpectReplyForHdr(msgHdr, params.outDate);
       replyManagerHdrViewWidget.hdrViewDeployItems();
+      updateToolbarButtons(msgHdr);
     }
   }
 }

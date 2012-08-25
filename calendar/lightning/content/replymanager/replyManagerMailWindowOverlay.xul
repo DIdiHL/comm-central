@@ -14,17 +14,40 @@
           src="chrome://lightning/content/replyManagerMailWindowOverlay.js"/>
 
   <commandset>
-    <command id="cmd_toggleExpectReply" oncommand="toggleExpectReplyCheckbox();"/>
     <command id="cmd_modifyExpectReply" oncommand="modifyExpectReply();"/>
     <command id="cmd_startComposeReminder" oncommand="startComposeReminder();"/>
     <command id="cmd_viewAllMarkedMessages" oncommand="replyManagerTabOpener.openTab();"/>
+    <command id="cmd_toolbarMarkExpectReply" oncommand="toolbarMarkExpectReply();"/>
   </commandset>
+
+  <menupopup id="messageMenuPopup">
+    <!-- This menu is the same as that in the mailContext menu -->
+    <menu id="replyManagerMessageMenu" label="&replyManagerMailContextMenu.label;">
+      <menupopup id="replyManagerMessageMenupopup"
+                 onpopupshowing="onReplyManagerPopupShowing(this.id);">
+        <menuitem id="messageExpectReplyCheckbox"
+                  label="&replyManagerExpectReplyCheckbox.label;"
+                  oncommand="toggleExpectReplyCheckbox(this.id);"/>
+        <menuitem id="messageModifyExpectReplyItem"
+                  label="&replyManagerModifyExpectReplyItem.label;"
+                  command="cmd_modifyExpectReply"/>
+        <menuitem id="messageSendReminderItem"
+                  label="&replyManagerSendReminderItem.label;"
+                  command="cmd_startComposeReminder"/>
+        <menuseparator/>
+        <menuitem id="viewAllMarkedMessages" label="&viewAllMarkedMessages.label;"
+                  command="cmd_viewAllMarkedMessages"/>
+      </menupopup>
+    </menu>
+  </menupopup>
 
   <menupopup id="mailContext">
     <menu id="replyManagerMailContextMenu" label="&replyManagerMailContextMenu.label;">
-      <menupopup id="replyManagerMailContextMenupopup" onpopupshowing="onReplyManagerPopupShown();">
-        <menuitem id="expectReplyCheckbox" label="&replyManagerExpectReplyCheckbox.label;"
-                  command="cmd_toggleExpectReply"/>
+      <menupopup id="replyManagerMailContextMenupopup"
+                 onpopupshowing="onReplyManagerPopupShowing(this.id);">
+        <menuitem id="expectReplyCheckbox"
+                  label="&replyManagerExpectReplyCheckbox.label;"
+                  oncommand="toggleExpectReplyCheckbox(this.id);"/>
         <menuitem id="modifyExpectReplyItem" label="&replyManagerModifyExpectReplyItem.label;"
                   command="cmd_modifyExpectReply"/>
         <menuitem id="sendReminderItem" label="&replyManagerSendReminderItem.label;"
@@ -35,4 +58,22 @@
       </menupopup>
     </menu>
   </menupopup>
+
+  <toolbarpalette id="MailToolbarPalette">
+    <toolbarbutton id="viewAllMarkedMessagesButton"/>
+    <toolbarbutton id="markExpectReplyButton"/>
+    <toolbarbutton id="modifyDeadlineButton"/>
+  </toolbarpalette>
+
+  <toolbarbutton id="viewAllMarkedMessagesButton"
+                 label="&viewAllMarkedMessagesButton.label;"
+                 tooltiptext="&viewAllMarkedMessagesButton.tooltip;"
+                 command="cmd_viewAllMarkedMessages"/>
+  <toolbarbutton id="markExpectReplyButton"
+                 label="&markExpectReplyButton.label;"
+                 command="cmd_toolbarMarkExpectReply"/>
+  <toolbarbutton id="modifyDeadlineButton"
+                 label="&modifyDeadlineButton.label;"
+                 tooltiptext="&modifyDeadlineButton.tooltip;"
+                 command="cmd_modifyExpectReply"/>
 </overlay>
